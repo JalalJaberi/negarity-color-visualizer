@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Negarity Color Visualizer - Development</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .visualizer-container {
+            width: 100%;
+            height: 600px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .controls {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .controls button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #007cba;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .controls button:hover {
+            background: #005a87;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Negarity Color Visualizer</h1>
+        
+        <div class="controls">
+            <button onclick="renderRGBCube()">Render RGB Cube (3D)</button>
+            <button onclick="renderRGB2D()">Render RGB (2D)</button>
+            <button onclick="toggleAnimation()">Toggle Animation</button>
+        </div>
+        
+        <div id="visualizer" class="visualizer-container"></div>
+    </div>
+
+    <script type="module" src="/src/examples/demo.ts"></script>
+</body>
+</html>
