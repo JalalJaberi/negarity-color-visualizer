@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Negarity Color Visualizer - 2D Examples</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .example-section {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .example-section h2 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #007cba;
+            padding-bottom: 10px;
+        }
+        .example-section p {
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .visualizer-container {
+            width: 100%;
+            height: 400px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .controls {
+            background: #f8f8f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        .controls button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #007cba;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .controls button:hover {
+            background: #005a87;
+        }
+        .controls button.secondary {
+            background: #6c757d;
+        }
+        .controls button.secondary:hover {
+            background: #5a6268;
+        }
+        .code-snippet {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+        }
+        .code-snippet code {
+            color: #e83e8c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Negarity Color Visualizer</h1>
+        <p class="subtitle">2D Visualization Examples</p>
+        
+        <!-- Example 1: RGB 2D Projection -->
+        <div class="example-section">
+            <h2>Example 1: RGB Color Space 2D Projection</h2>
+            <p>This example shows a 2D projection of the RGB color cube. The visualization displays the front face of the RGB cube with a gradient showing the color distribution.</p>
+            <div id="visualizer-2d-1" class="visualizer-container"></div>
+            <div class="code-snippet">
+                <code>
+const rgb2DPreset: PresetConfig = {<br>
+&nbsp;&nbsp;name: 'RGB 2D Projection',<br>
+&nbsp;&nbsp;colorSpace: RGB_COLOR_SPACE,<br>
+&nbsp;&nbsp;shape: 'cube',<br>
+&nbsp;&nbsp;size: { width: 400, height: 400 },<br>
+&nbsp;&nbsp;config: { mode: '2d', showAxes: true, showLabels: true }<br>
+};<br>
+visualizer.render(rgb2DPreset);
+                </code>
+            </div>
+        </div>
+
+        <!-- Example 2: HSL Color Space -->
+        <div class="example-section">
+            <h2>Example 2: HSL Color Space with Color Points</h2>
+            <p>This example visualizes the HSL (Hue, Saturation, Lightness) color space with predefined color points showing primary and secondary colors.</p>
+            <div id="visualizer-2d-2" class="visualizer-container"></div>
+            <div class="code-snippet">
+                <code>
+const hsl2DPreset: PresetConfig = {<br>
+&nbsp;&nbsp;name: 'HSL Color Space',<br>
+&nbsp;&nbsp;colorSpace: HSL_COLOR_SPACE,<br>
+&nbsp;&nbsp;points: [<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{ values: [0, 100, 50], color: '#ff0000', label: 'Red' },<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{ values: [120, 100, 50], color: '#00ff00', label: 'Green' },<br>
+&nbsp;&nbsp;&nbsp;&nbsp;// ... more points<br>
+&nbsp;&nbsp;],<br>
+&nbsp;&nbsp;config: { mode: '2d', showGrid: true }<br>
+};<br>
+visualizer.render(hsl2DPreset);
+                </code>
+            </div>
+        </div>
+
+        <!-- Example 3: Custom Color Points -->
+        <div class="example-section">
+            <h2>Example 3: Custom Color Points Visualization</h2>
+            <p>This example demonstrates how to visualize custom color points. You can interactively add new color points using the button below.</p>
+            <div id="visualizer-2d-3" class="visualizer-container"></div>
+            <div class="controls">
+                <button onclick="addRandomColorPoint()">Add Random Color Point</button>
+                <button class="secondary" onclick="resetColorPoints()">Reset to Default</button>
+            </div>
+            <div class="code-snippet">
+                <code>
+const customColorPoints: ColorPoint[] = [<br>
+&nbsp;&nbsp;{ values: [255, 0, 0], color: '#ff0000', label: 'Pure Red' },<br>
+&nbsp;&nbsp;{ values: [0, 255, 0], color: '#00ff00', label: 'Pure Green' },<br>
+&nbsp;&nbsp;// ... more points<br>
+];<br>
+visualizer.update(customColorPoints);
+                </code>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/examples/demo2d.ts"></script>
+    <script type="module">
+        // Make reset function available
+        window.resetColorPoints = () => {
+            const defaultPoints = [
+                { values: [255, 0, 0], color: '#ff0000', label: 'Pure Red' },
+                { values: [0, 255, 0], color: '#00ff00', label: 'Pure Green' },
+                { values: [0, 0, 255], color: '#0000ff', label: 'Pure Blue' },
+                { values: [255, 255, 0], color: '#ffff00', label: 'Yellow' },
+                { values: [255, 0, 255], color: '#ff00ff', label: 'Magenta' },
+                { values: [0, 255, 255], color: '#00ffff', label: 'Cyan' },
+                { values: [128, 128, 128], color: '#808080', label: 'Gray' },
+                { values: [255, 128, 0], color: '#ff8000', label: 'Orange' },
+                { values: [128, 0, 255], color: '#8000ff', label: 'Purple' },
+                { values: [0, 128, 255], color: '#0080ff', label: 'Sky Blue' },
+            ];
+            if (window.updateColorPoints) {
+                window.updateColorPoints(defaultPoints);
+            }
+        };
+    </script>
+</body>
+</html>
