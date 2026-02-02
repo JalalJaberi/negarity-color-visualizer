@@ -15,7 +15,7 @@
             background: #f5f5f5;
         }
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
         h1 {
@@ -51,23 +51,58 @@
         }
         .controls h3 {
             margin-top: 0;
+            margin-bottom: 15px;
             color: #333;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 8px;
         }
         .control-group {
             margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         .control-group label {
             display: inline-block;
-            width: 100px;
+            min-width: 120px;
             font-weight: 500;
             color: #555;
         }
-        .control-group input {
-            width: 80px;
-            padding: 8px;
+        .control-group input[type="number"],
+        .control-group input[type="range"],
+        .control-group input[type="color"],
+        .control-group select {
+            padding: 6px;
             border: 1px solid #ddd;
             border-radius: 4px;
-            margin-right: 10px;
+            font-size: 14px;
+        }
+        .control-group input[type="number"] {
+            width: 80px;
+        }
+        .control-group input[type="range"] {
+            width: 150px;
+        }
+        .control-group input[type="color"] {
+            width: 60px;
+            height: 35px;
+            cursor: pointer;
+        }
+        .control-group select {
+            width: 120px;
+        }
+        .control-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        .range-value {
+            display: inline-block;
+            min-width: 40px;
+            text-align: center;
+            font-weight: 500;
+            color: #007cba;
         }
         .controls button {
             padding: 10px 20px;
@@ -105,17 +140,35 @@
             margin: 5px 0;
             color: #555;
         }
+        .control-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #fff;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+        }
+        .control-section h4 {
+            margin-top: 0;
+            color: #007cba;
+            font-size: 16px;
+        }
+        .sub-control-group {
+            margin-left: 20px;
+            margin-top: 10px;
+            padding-left: 15px;
+            border-left: 2px solid #e0e0e0;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>RGB Chromaticity Diagram</h1>
-        <p class="subtitle">CIE xy Color Space Visualization</p>
+        <p class="subtitle">CIE xy Color Space Visualization with Full Controls</p>
         
         <div class="info">
             <p><strong>What is this?</strong></p>
             <p>This visualization shows the RGB color gamut in CIE xy chromaticity space. The triangle represents all colors that can be displayed using RGB. The point shows where your selected color appears in this space.</p>
-            <p><strong>How to use:</strong> Enter RGB values (0-255) and click "Update Point" to see where that color appears in the gamut.</p>
+            <p><strong>How to use:</strong> Use the controls below to customize all aspects of the visualization - CIE background, axes, and markers.</p>
         </div>
 
         <div class="example-section">
@@ -127,9 +180,9 @@
                     <label>Red (R):</label>
                     <input type="number" id="r-value" min="0" max="255" value="255">
                     <label>Green (G):</label>
-                    <input type="number" id="g-value" min="0" max="255" value="100">
+                    <input type="number" id="g-value" min="0" max="255" value="0">
                     <label>Blue (B):</label>
-                    <input type="number" id="b-value" min="0" max="255" value="50">
+                    <input type="number" id="b-value" min="0" max="255" value="0">
                     <button onclick="updateFromInputs()">Update Point</button>
                 </div>
                 
@@ -144,12 +197,194 @@
                     <button onclick="setColor(255, 255, 255, 'White')">White</button>
                     <button onclick="setColor(128, 128, 128, 'Gray')">Gray</button>
                 </div>
+
+                <!-- CIE Background Controls -->
+                <div class="control-section">
+                    <h4>CIE Background Settings</h4>
+                    <div class="control-group">
+                        <label>Show Background:</label>
+                        <input type="checkbox" id="cie-show" checked onchange="updateCIEBackground()">
+                    </div>
+                    <div class="control-group">
+                        <label>Brightness:</label>
+                        <input type="range" id="cie-brightness" min="0" max="1" step="0.1" value="1.0" oninput="updateCIEBackground()">
+                        <span class="range-value" id="cie-brightness-value">1.0</span>
+                    </div>
+                    <div class="control-group">
+                        <label>Opacity:</label>
+                        <input type="range" id="cie-opacity" min="0" max="1" step="0.05" value="0.85" oninput="updateCIEBackground()">
+                        <span class="range-value" id="cie-opacity-value">0.85</span>
+                    </div>
+                    <div class="control-group">
+                        <label>Show Boundary Line:</label>
+                        <input type="checkbox" id="cie-boundary-show" onchange="updateCIEBackground()">
+                    </div>
+                    <div class="sub-control-group" id="cie-boundary-controls" style="display: none;">
+                        <div class="control-group">
+                            <label>Line Weight:</label>
+                            <input type="number" id="cie-boundary-weight" min="1" max="10" value="1" onchange="updateCIEBackground()">
+                        </div>
+                        <div class="control-group">
+                            <label>Line Color:</label>
+                            <input type="color" id="cie-boundary-color" value="#000000" onchange="updateCIEBackground()">
+                        </div>
+                        <div class="control-group">
+                            <label>Line Style:</label>
+                            <select id="cie-boundary-style" onchange="updateCIEBackground()">
+                                <option value="solid">Solid</option>
+                                <option value="dashed">Dashed</option>
+                                <option value="dotted">Dotted</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Axes Controls -->
+                <div class="control-section">
+                    <h4>Axes Settings</h4>
+                    <div class="control-group">
+                        <label>Show Axes:</label>
+                        <input type="checkbox" id="axes-show" checked onchange="updateAxes()">
+                    </div>
+                    <div class="control-group">
+                        <label>Show Lines:</label>
+                        <input type="checkbox" id="axes-show-lines" checked onchange="updateAxes()">
+                    </div>
+                    <div class="control-group">
+                        <label>Show Labels:</label>
+                        <input type="checkbox" id="axes-show-labels" checked onchange="updateAxes()">
+                    </div>
+                    <div class="sub-control-group">
+                        <div class="control-group">
+                            <label>Line Weight:</label>
+                            <input type="number" id="axes-line-weight" min="1" max="10" value="1" onchange="updateAxes()">
+                        </div>
+                        <div class="control-group">
+                            <label>Line Color:</label>
+                            <input type="color" id="axes-line-color" value="#999999" onchange="updateAxes()">
+                        </div>
+                        <div class="control-group">
+                            <label>Line Style:</label>
+                            <select id="axes-line-style" onchange="updateAxes()">
+                                <option value="solid">Solid</option>
+                                <option value="dashed" selected>Dashed</option>
+                                <option value="dotted">Dotted</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label>Label Font Size:</label>
+                            <input type="number" id="axes-label-size" min="8" max="24" value="14" onchange="updateAxes()">
+                        </div>
+                        <div class="control-group">
+                            <label>Label Color:</label>
+                            <input type="color" id="axes-label-color" value="#666666" onchange="updateAxes()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Marker Controls -->
+                <div class="control-section">
+                    <h4>Marker Settings</h4>
+                    <div class="control-group">
+                        <label>Show Marker:</label>
+                        <input type="checkbox" id="marker-show" checked onchange="updateMarker()">
+                    </div>
+                    <div class="control-group">
+                        <label>Shape:</label>
+                        <select id="marker-shape" onchange="updateMarker()">
+                            <option value="circle" selected>Circle</option>
+                            <option value="square">Square</option>
+                            <option value="triangle">Triangle</option>
+                            <option value="diamond">Diamond</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>Size:</label>
+                        <input type="number" id="marker-size" min="3" max="20" value="6" onchange="updateMarker()">
+                    </div>
+                    <div class="control-group">
+                        <label>Show Label:</label>
+                        <input type="checkbox" id="marker-show-label" onchange="updateMarker()">
+                    </div>
+                    <div class="control-group">
+                        <label>Show Border:</label>
+                        <input type="checkbox" id="marker-border-show" checked onchange="updateMarker()">
+                    </div>
+                    <div class="sub-control-group" id="marker-border-controls">
+                        <div class="control-group">
+                            <label>Border Weight:</label>
+                            <input type="number" id="marker-border-weight" min="1" max="10" value="2" onchange="updateMarker()">
+                        </div>
+                        <div class="control-group">
+                            <label>Border Color:</label>
+                            <input type="color" id="marker-border-color" value="#000000" onchange="updateMarker()">
+                        </div>
+                        <div class="control-group">
+                            <label>Border Style:</label>
+                            <select id="marker-border-style" onchange="updateMarker()">
+                                <option value="solid" selected>Solid</option>
+                                <option value="dashed">Dashed</option>
+                                <option value="dotted">Dotted</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="sub-control-group" id="marker-label-controls" style="display: none;">
+                        <div class="control-group">
+                            <label>Label Font Size:</label>
+                            <input type="number" id="marker-label-size" min="8" max="24" value="12" onchange="updateMarker()">
+                        </div>
+                        <div class="control-group">
+                            <label>Label Color:</label>
+                            <input type="color" id="marker-label-color" value="#000000" onchange="updateMarker()">
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script type="module" src="/src/examples/chromaticity-demo.ts"></script>
     <script>
+        // Make functions globally accessible for inline handlers
+        window.updateCIEBackground = function() {
+            if (!window.updateCIEBackgroundFn) {
+                console.warn('window.updateCIEBackgroundFn not available yet');
+                return;
+            }
+
+            const showEl = document.getElementById('cie-show');
+            const brightnessEl = document.getElementById('cie-brightness');
+            const opacityEl = document.getElementById('cie-opacity');
+            const showBoundaryEl = document.getElementById('cie-boundary-show');
+
+            if (!showEl || !brightnessEl || !opacityEl || !showBoundaryEl) {
+                console.error('CIE background control elements not found');
+                return;
+            }
+
+            const show = showEl.checked;
+            const brightness = parseFloat(brightnessEl.value);
+            const opacity = parseFloat(opacityEl.value);
+            const showBoundary = showBoundaryEl.checked;
+
+            const config = {
+                show: show,
+                brightness: brightness,
+                opacity: opacity,
+                boundaryLine: showBoundary ? {
+                    weight: parseInt(document.getElementById('cie-boundary-weight').value),
+                    color: document.getElementById('cie-boundary-color').value,
+                    style: document.getElementById('cie-boundary-style').value,
+                } : false,
+            };
+
+            console.log('updateCIEBackground function creating config:', config);
+            // Call the actual update function from the module
+            if (window.updateCIEBackgroundFn) {
+                window.updateCIEBackgroundFn(config);
+            }
+        };
+
         function updateFromInputs() {
             const r = parseInt(document.getElementById('r-value').value) || 0;
             const g = parseInt(document.getElementById('g-value').value) || 0;
@@ -168,6 +403,121 @@
             if (window.updatePoint) {
                 window.updatePoint(r, g, b, label);
             }
+        }
+
+        // Update range value displays
+        document.getElementById('cie-brightness').addEventListener('input', function() {
+            document.getElementById('cie-brightness-value').textContent = this.value;
+        });
+        document.getElementById('cie-opacity').addEventListener('input', function() {
+            document.getElementById('cie-opacity-value').textContent = this.value;
+        });
+
+        // Toggle boundary controls visibility
+        document.getElementById('cie-boundary-show').addEventListener('change', function() {
+            document.getElementById('cie-boundary-controls').style.display = this.checked ? 'block' : 'none';
+            updateCIEBackground();
+        });
+
+        // Toggle marker border controls visibility
+        document.getElementById('marker-border-show').addEventListener('change', function() {
+            document.getElementById('marker-border-controls').style.display = this.checked ? 'block' : 'none';
+            updateMarker();
+        });
+
+        // Toggle marker label controls visibility
+        document.getElementById('marker-show-label').addEventListener('change', function() {
+            document.getElementById('marker-label-controls').style.display = this.checked ? 'block' : 'none';
+            updateMarker();
+        });
+
+        function updateCIEBackground() {
+            if (!window.updateCIEBackgroundFn) {
+                console.warn('window.updateCIEBackgroundFn not available yet');
+                return;
+            }
+
+            const showEl = document.getElementById('cie-show');
+            const brightnessEl = document.getElementById('cie-brightness');
+            const opacityEl = document.getElementById('cie-opacity');
+            const showBoundaryEl = document.getElementById('cie-boundary-show');
+
+            if (!showEl || !brightnessEl || !opacityEl || !showBoundaryEl) {
+                console.error('CIE background control elements not found');
+                return;
+            }
+
+            const show = showEl.checked;
+            const brightness = parseFloat(brightnessEl.value);
+            const opacity = parseFloat(opacityEl.value);
+            const showBoundary = showBoundaryEl.checked;
+
+            const config = {
+                show: show,
+                brightness: brightness,
+                opacity: opacity,
+                boundaryLine: showBoundary ? {
+                    weight: parseInt(document.getElementById('cie-boundary-weight').value),
+                    color: document.getElementById('cie-boundary-color').value,
+                    style: document.getElementById('cie-boundary-style').value,
+                } : false,
+            };
+
+            console.log('updateCIEBackground function creating config:', config);
+            window.updateCIEBackgroundFn(config);
+        }
+
+        function updateAxes() {
+            if (!window.updateAxes) return;
+
+            const show = document.getElementById('axes-show').checked;
+            const showLines = document.getElementById('axes-show-lines').checked;
+            const showLabels = document.getElementById('axes-show-labels').checked;
+
+            const config = {
+                show: show,
+                showLines: showLines,
+                showLabels: showLabels,
+                lineStyle: {
+                    weight: parseInt(document.getElementById('axes-line-weight').value),
+                    color: document.getElementById('axes-line-color').value,
+                    style: document.getElementById('axes-line-style').value,
+                },
+                labelStyle: {
+                    fontSize: parseInt(document.getElementById('axes-label-size').value),
+                    color: document.getElementById('axes-label-color').value,
+                },
+            };
+
+            window.updateAxesFn(config);
+        }
+
+        function updateMarker() {
+            if (!window.updateMarkerFn) return;
+
+            const show = document.getElementById('marker-show').checked;
+            const shape = document.getElementById('marker-shape').value;
+            const size = parseInt(document.getElementById('marker-size').value);
+            const showLabel = document.getElementById('marker-show-label').checked;
+            const showBorder = document.getElementById('marker-border-show').checked;
+
+            const config = {
+                show: show,
+                shape: shape,
+                size: size,
+                showLabel: showLabel,
+                border: showBorder ? {
+                    weight: parseInt(document.getElementById('marker-border-weight').value),
+                    color: document.getElementById('marker-border-color').value,
+                    style: document.getElementById('marker-border-style').value,
+                } : false,
+                labelStyle: showLabel ? {
+                    fontSize: parseInt(document.getElementById('marker-label-size').value),
+                    color: document.getElementById('marker-label-color').value,
+                } : undefined,
+            };
+
+            window.updateMarkerFn(config);
         }
     </script>
 </body>

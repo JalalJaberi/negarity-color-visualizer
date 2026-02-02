@@ -84,5 +84,25 @@ window.addEventListener('resize', () => {
   visualizer.handleResize();
 });
 
+// Expose update functions for component controls
+// The HTML will define window.updateCIEBackground to read from DOM and call this
+// We only expose updateCIEBackgroundFn, not updateCIEBackground, to avoid conflicts
+(window as any).updateCIEBackgroundFn = (config: any) => {
+  console.log('examples updateCIEBackgroundFn', config);
+  if (!config) {
+    console.error('updateCIEBackgroundFn called without config!');
+    return;
+  }
+  visualizer.updateCIEBackground(config);
+};
+
+(window as any).updateAxesFn = (config: any) => {
+  visualizer.updateAxes(config);
+};
+
+(window as any).updateMarkerFn = (config: any) => {
+  visualizer.updateMarker(config);
+};
+
 console.log('Chromaticity diagram loaded!');
 console.log('Try: updatePoint(255, 0, 0, "Pure Red")');

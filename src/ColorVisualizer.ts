@@ -116,6 +116,35 @@ export class ColorVisualizer {
   }
 
   /**
+   * Update CIE background configuration (2D only)
+   */
+  updateCIEBackground(config: Partial<import('./components/types').CIEBackgroundConfig>): void {
+    console.log('visualizer updateCIEBackground', config);
+    if (this.renderer && 'updateCIEBackground' in this.renderer) {
+      console.log('visualizer updateCIEBackground, render exists', this.renderer);
+      (this.renderer as any).updateCIEBackground(config);
+    }
+  }
+
+  /**
+   * Update axes configuration (2D only)
+   */
+  updateAxes(config: Partial<import('./components/types').AxesConfig>): void {
+    if (this.renderer && 'updateAxes' in this.renderer) {
+      (this.renderer as any).updateAxes(config);
+    }
+  }
+
+  /**
+   * Update marker configuration (2D only)
+   */
+  updateMarker(config: Partial<import('./components/types').MarkerConfig>): void {
+    if (this.renderer && 'updateMarker' in this.renderer) {
+      (this.renderer as any).updateMarker(config);
+    }
+  }
+
+  /**
    * Destroy the visualizer and clean up resources
    */
   destroy(): void {

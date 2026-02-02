@@ -11,6 +11,7 @@ export class Marker {
   private layer: Konva.Layer | null = null;
   private config: MarkerConfig = {};
   private coordinateSystem: CoordinateSystem | null = null;
+  private initialized: boolean = false;
 
   /**
    * Initialize the component
@@ -22,25 +23,44 @@ export class Marker {
   ): void {
     this.layer = layer;
     this.coordinateSystem = coordinateSystem;
-    this.config = {
-      show: true,
-      shape: 'circle',
-      size: 6,
-      border: {
-        weight: 2,
-        color: '#000',
-        style: 'solid',
-      },
-      showLabel: false,
-      labelStyle: {
-        fontSize: 12,
-        color: '#000',
-        fontFamily: 'Arial',
-        offsetX: 8,
-        offsetY: -8,
-      },
-      ...config,
-    };
+    // If already initialized, preserve existing config and only update layer/coordinate system
+    // Otherwise, set defaults
+    if (!this.initialized) {
+      this.config = {
+        show: true,
+        shape: 'circle',
+        size: 6,
+        border: {
+          weight: 2,
+          color: '#000',
+          style: 'solid',
+        },
+        showLabel: false,
+        labelStyle: {
+          fontSize: 12,
+          color: '#000',
+          fontFamily: 'Arial',
+          offsetX: 8,
+          offsetY: -8,
+        },
+        ...config,
+      };
+      this.initialized = true;
+    }
+    // If config is provided and component is already initialized, merge it
+    if (this.initialized && Object.keys(config).length > 0) {
+      const existingLabelStyle = this.config.labelStyle || {};
+      this.config = {
+        ...this.config,
+        ...config,
+        // Deep merge for nested objects
+        border: config.border !== undefined ? config.border : this.config.border,
+        labelStyle: config.labelStyle ? {
+          ...existingLabelStyle,
+          ...config.labelStyle,
+        } : existingLabelStyle,
+      };
+    }
   }
 
   /**

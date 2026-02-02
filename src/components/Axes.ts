@@ -10,6 +10,7 @@ export class Axes {
   private layer: Konva.Layer | null = null;
   private config: AxesConfig = {};
   private coordinateSystem: CoordinateSystem | null = null;
+  private initialized: boolean = false;
 
   /**
    * Initialize the component
@@ -21,23 +22,46 @@ export class Axes {
   ): void {
     this.layer = layer;
     this.coordinateSystem = coordinateSystem;
-    this.config = {
-      show: true,
-      showLines: true,
-      showLabels: true,
-      lineStyle: {
-        weight: 1,
-        color: '#999',
-        style: 'dashed',
-        dash: [5, 5],
-      },
-      labelStyle: {
-        fontSize: 14,
-        color: '#666',
-        fontFamily: 'Arial',
-      },
-      ...config,
-    };
+    // If already initialized, preserve existing config and only update layer/coordinate system
+    // Otherwise, set defaults
+    if (!this.initialized) {
+      this.config = {
+        show: true,
+        showLines: true,
+        showLabels: true,
+        lineStyle: {
+          weight: 1,
+          color: '#999',
+          style: 'dashed',
+          dash: [5, 5],
+        },
+        labelStyle: {
+          fontSize: 14,
+          color: '#666',
+          fontFamily: 'Arial',
+        },
+        ...config,
+      };
+      this.initialized = true;
+    }
+    // If config is provided and component is already initialized, merge it
+    if (this.initialized && Object.keys(config).length > 0) {
+      const existingLineStyle = this.config.lineStyle || {};
+      const existingLabelStyle = this.config.labelStyle || {};
+      this.config = {
+        ...this.config,
+        ...config,
+        // Deep merge for nested objects
+        lineStyle: config.lineStyle ? {
+          ...existingLineStyle,
+          ...config.lineStyle,
+        } : existingLineStyle,
+        labelStyle: config.labelStyle ? {
+          ...existingLabelStyle,
+          ...config.labelStyle,
+        } : existingLabelStyle,
+      };
+    }
   }
 
   /**

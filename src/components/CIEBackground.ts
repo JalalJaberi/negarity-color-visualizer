@@ -12,6 +12,7 @@ export class CIEBackground {
   private config: CIEBackgroundConfig = {};
   private coordinateSystem: CoordinateSystem | null = null;
   private size: { width: number; height: number; depth?: number } | null = null;
+  private initialized: boolean = false;
 
   /**
    * Initialize the component
@@ -25,13 +26,26 @@ export class CIEBackground {
     this.layer = layer;
     this.coordinateSystem = coordinateSystem;
     this.size = size;
-    this.config = {
-      show: true,
-      brightness: 1.0,
-      opacity: 0.85,
-      boundaryLine: false, // Default: no boundary line
-      ...config,
-    };
+    
+    // If already initialized, preserve existing config and only update layer/coordinate system
+    // Otherwise, set defaults
+    if (!this.initialized) {
+      this.config = {
+        show: true,
+        brightness: 1.0,
+        opacity: 0.85,
+        boundaryLine: false, // Default: no boundary line
+        ...config,
+      };
+      this.initialized = true;
+    }
+    // If config is provided and component is already initialized, merge it
+    if (this.initialized && Object.keys(config).length > 0) {
+      this.config = {
+        ...this.config,
+        ...config,
+      };
+    }
   }
 
   /**
@@ -49,6 +63,7 @@ export class CIEBackground {
     const { offsetX, offsetY, scale, maxX, maxY } = this.coordinateSystem;
     const brightness = this.config.brightness ?? 1.0;
     const opacity = this.config.opacity ?? 0.85;
+    console.log('CIEBackground render - using brightness:', brightness, 'opacity:', opacity, 'config:', this.config);
     const spectralLocus = getSpectralLocus();
 
     // Create a very high-resolution grid for ultra-smooth edges
@@ -168,7 +183,12 @@ export class CIEBackground {
    * Update configuration
    */
   updateConfig(config: Partial<CIEBackgroundConfig>): void {
-    this.config = { ...this.config, ...config };
+    if (config && typeof config === 'object') {
+      this.config = { ...this.config, ...config };
+      console.log('CIEBackground updateConfig called, new config:', this.config);
+    } else {
+      console.warn('CIEBackground updateConfig called with invalid config:', config);
+    }
   }
 
   /**

@@ -18,6 +18,7 @@ export class Renderer2D implements IRenderer {
   private cieBackground: CIEBackground | null = null;
   private axes: Axes | null = null;
   private marker: Marker | null = null;
+  private currentPreset: PresetConfig | null = null;
 
   init(container: HTMLElement, config: VisualizerConfig): void {
     this.config = config;
@@ -54,6 +55,9 @@ export class Renderer2D implements IRenderer {
     if (!this.stage || !this.layer) {
       throw new Error('Renderer not initialized. Call init() first.');
     }
+
+    // Store current preset for re-rendering
+    this.currentPreset = preset;
 
     // Clear layer
     this.layer.destroyChildren();
@@ -359,12 +363,16 @@ export class Renderer2D implements IRenderer {
     const vertices = getRgbGamutVertices();
 
     // Initialize and render CIE background component
-    this.cieBackground = new CIEBackground();
-    this.cieBackground.init(this.layer, coordinateSystem, size, {
-      brightness: 1.0,
-      opacity: 0.85,
-      boundaryLine: false, // No boundary line by default
-    });
+    // Reuse existing instance if config was updated, otherwise create new
+    if (!this.cieBackground) {
+      this.cieBackground = new CIEBackground();
+      // First time initialization - use defaults
+      this.cieBackground.init(this.layer, coordinateSystem, size, {});
+    } else {
+      // Component already exists - just update layer/coordinate system if needed
+      // and preserve the existing config (which may have been updated)
+      this.cieBackground.init(this.layer, coordinateSystem, size, {});
+    }
     this.cieBackground.render();
 
     // Convert xy coordinates to screen coordinates using the same scale
@@ -412,37 +420,33 @@ export class Renderer2D implements IRenderer {
     // White point (D65) removed per user request
 
     // Initialize and render axes component
-    this.axes = new Axes();
-    this.axes.init(this.layer, coordinateSystem, {
-      show: this.config?.showAxes !== false,
-      showLines: true,
-      showLabels: this.config?.showLabels !== false,
-      lineStyle: {
-        weight: 1,
-        color: '#999',
-        style: 'dashed',
-        dash: [5, 5],
-      },
-      labelStyle: {
-        fontSize: 14,
-        color: '#666',
-      },
-    });
+    // Reuse existing instance if config was updated, otherwise create new
+    if (!this.axes) {
+      this.axes = new Axes();
+    }
+    // Get existing config (which may have been updated) and pass it to init
+    // The component's init() will merge it with defaults
+    const existingAxesConfig = this.axes.getConfig();
+    // Merge with initial defaults if config is empty
+    const axesConfigToUse = Object.keys(existingAxesConfig).length > 0 
+      ? existingAxesConfig 
+      : {
+          show: this.config?.showAxes !== false,
+          showLines: true,
+          showLabels: this.config?.showLabels !== false,
+        };
+    this.axes.init(this.layer, coordinateSystem, axesConfigToUse);
     this.axes.render();
 
     // Initialize and render marker component
-    this.marker = new Marker();
-    this.marker.init(this.layer, coordinateSystem, {
-      show: true,
-      shape: 'circle',
-      size: 6,
-      border: {
-        weight: 2,
-        color: '#000',
-        style: 'solid',
-      },
-      showLabel: false,
-    });
+    // Reuse existing instance if config was updated, otherwise create new
+    if (!this.marker) {
+      this.marker = new Marker();
+    }
+    // Get existing config (which may have been updated) and pass it to init
+    // The component's init() will merge it with defaults
+    const existingMarkerConfig = this.marker.getConfig();
+    this.marker.init(this.layer, coordinateSystem, existingMarkerConfig);
 
     // Plot the points if provided
     if (preset.points && preset.points.length > 0) {
@@ -453,6 +457,49 @@ export class Renderer2D implements IRenderer {
           this.marker!.render(point, [x, y]);
         }
       });
+    }
+  }
+
+  /**
+   * Update CIE background configuration and re-render
+   */
+  updateCIEBackground(config: Partial<import('../components/types').CIEBackgroundConfig>): void {
+    if (!this.cieBackground) {
+      this.cieBackground = new CIEBackground();
+    }
+    // Update the config
+    this.cieBackground.updateConfig(config);
+    // Re-render the current preset
+    if (this.currentPreset) {
+      this.render(this.currentPreset);
+    }
+  }
+
+  /**
+   * Update axes configuration and re-render
+   */
+  updateAxes(config: Partial<import('../components/types').AxesConfig>): void {
+    if (!this.axes) {
+      this.axes = new Axes();
+    }
+    this.axes.updateConfig(config);
+    // Re-render the current preset
+    if (this.currentPreset) {
+      this.render(this.currentPreset);
+    }
+  }
+
+  /**
+   * Update marker configuration and re-render
+   */
+  updateMarker(config: Partial<import('../components/types').MarkerConfig>): void {
+    if (!this.marker) {
+      this.marker = new Marker();
+    }
+    this.marker.updateConfig(config);
+    // Re-render the current preset
+    if (this.currentPreset) {
+      this.render(this.currentPreset);
     }
   }
 }
