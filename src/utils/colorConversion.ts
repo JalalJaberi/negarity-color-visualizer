@@ -191,13 +191,35 @@ export function xyToRgb(x: number, y: number, Y: number = 1.0): [number, number,
   let b = X * matrix[2][0] + Y * matrix[2][1] + Z * matrix[2][2];
 
   // For out-of-gamut colors, we need to map them to displayable colors
-  // Use a simple approach: normalize and enhance saturation
+  // Use a simple approach: normalize and enhance saturation for vivid colors
   const max = Math.max(r, g, b);
   if (max > 1) {
-    // Scale down to fit in gamut
+    // Scale down to fit in gamut, but preserve saturation
     r = r / max;
     g = g / max;
     b = b / max;
+  }
+
+  // Enhance saturation for more vivid colors
+  // Find the minimum component to calculate saturation
+  const min = Math.min(r, g, b);
+  const saturation = max > 0 ? 1 - min / max : 0;
+  
+  // Boost saturation for more vivid colors (especially for pure colors)
+  if (saturation > 0.1) {
+    const boostFactor = 1.2; // Boost saturation by 20%
+    const avg = (r + g + b) / 3;
+    r = avg + (r - avg) * boostFactor;
+    g = avg + (g - avg) * boostFactor;
+    b = avg + (b - avg) * boostFactor;
+    
+    // Re-normalize if needed
+    const newMax = Math.max(r, g, b);
+    if (newMax > 1) {
+      r = r / newMax;
+      g = g / newMax;
+      b = b / newMax;
+    }
   }
 
   // Apply gamma correction

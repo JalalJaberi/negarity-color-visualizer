@@ -493,8 +493,8 @@ export class Renderer2D implements IRenderer {
 
         // Check if point is inside the spectral locus boundary
         if (this.isPointInsideSpectralLocus([xyX, xyY], spectralLocus)) {
-          // Convert xy to RGB for display with higher luminance for better color visibility
-          const [r, g, b] = xyToRgb(xyX, xyY, 0.8); // Increased Y for brighter, more vibrant colors
+          // Convert xy to RGB for display with maximum luminance for vivid colors
+          const [r, g, b] = xyToRgb(xyX, xyY, 1.0); // Maximum Y for brightest, most vibrant colors
           const color = `rgb(${r}, ${g}, ${b})`;
 
           const rect = new Konva.Rect({
@@ -503,7 +503,7 @@ export class Renderer2D implements IRenderer {
             width: stepX + 0.1, // Minimal overlap for seamless coverage
             height: stepY + 0.1,
             fill: color,
-            opacity: 0.6, // Semi-transparent to show RGB triangle on top
+            opacity: 0.85, // Higher opacity for more vivid colors while still showing RGB triangle
             perfectDrawEnabled: false, // Disable perfect drawing for better performance
             shadowForStrokeEnabled: false,
           });
