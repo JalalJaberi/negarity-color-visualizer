@@ -348,7 +348,6 @@
         // Make functions globally accessible for inline handlers
         window.updateCIEBackground = function() {
             if (!window.updateCIEBackgroundFn) {
-                console.warn('window.updateCIEBackgroundFn not available yet');
                 return;
             }
 
@@ -358,7 +357,6 @@
             const showBoundaryEl = document.getElementById('cie-boundary-show');
 
             if (!showEl || !brightnessEl || !opacityEl || !showBoundaryEl) {
-                console.error('CIE background control elements not found');
                 return;
             }
 
@@ -378,11 +376,7 @@
                 } : false,
             };
 
-            console.log('updateCIEBackground function creating config:', config);
-            // Call the actual update function from the module
-            if (window.updateCIEBackgroundFn) {
-                window.updateCIEBackgroundFn(config);
-            }
+            window.updateCIEBackgroundFn(config);
         };
 
         function updateFromInputs() {
@@ -433,7 +427,6 @@
 
         function updateCIEBackground() {
             if (!window.updateCIEBackgroundFn) {
-                console.warn('window.updateCIEBackgroundFn not available yet');
                 return;
             }
 
@@ -443,7 +436,6 @@
             const showBoundaryEl = document.getElementById('cie-boundary-show');
 
             if (!showEl || !brightnessEl || !opacityEl || !showBoundaryEl) {
-                console.error('CIE background control elements not found');
                 return;
             }
 
@@ -463,7 +455,6 @@
                 } : false,
             };
 
-            console.log('updateCIEBackground function creating config:', config);
             window.updateCIEBackgroundFn(config);
         }
 

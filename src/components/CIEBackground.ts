@@ -63,7 +63,6 @@ export class CIEBackground {
     const { offsetX, offsetY, scale, maxX, maxY } = this.coordinateSystem;
     const brightness = this.config.brightness ?? 1.0;
     const opacity = this.config.opacity ?? 0.85;
-    console.log('CIEBackground render - using brightness:', brightness, 'opacity:', opacity, 'config:', this.config);
     const spectralLocus = getSpectralLocus();
 
     // Create a very high-resolution grid for ultra-smooth edges
@@ -185,9 +184,6 @@ export class CIEBackground {
   updateConfig(config: Partial<CIEBackgroundConfig>): void {
     if (config && typeof config === 'object') {
       this.config = { ...this.config, ...config };
-      console.log('CIEBackground updateConfig called, new config:', this.config);
-    } else {
-      console.warn('CIEBackground updateConfig called with invalid config:', config);
     }
   }
 

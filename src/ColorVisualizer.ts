@@ -119,9 +119,7 @@ export class ColorVisualizer {
    * Update CIE background configuration (2D only)
    */
   updateCIEBackground(config: Partial<import('./components/types').CIEBackgroundConfig>): void {
-    console.log('visualizer updateCIEBackground', config);
     if (this.renderer && 'updateCIEBackground' in this.renderer) {
-      console.log('visualizer updateCIEBackground, render exists', this.renderer);
       (this.renderer as any).updateCIEBackground(config);
     }
   }
