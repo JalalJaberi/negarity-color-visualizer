@@ -82,7 +82,7 @@ export class Marker {
     const screenY = offsetY - y * scale;
 
     // Render the marker shape
-    const shape = this.createShape(screenX, screenY, point.color);
+    const shape = this.createShape(screenX, screenY);
     if (shape) {
       this.layer.add(shape);
     }
@@ -107,7 +107,7 @@ export class Marker {
   /**
    * Create the marker shape based on configuration
    */
-  private createShape(x: number, y: number, fillColor: string): Konva.Shape | null {
+  private createShape(x: number, y: number): Konva.Shape | null {
     const size = this.config.size || 6;
     const border = this.config.border;
 
@@ -119,7 +119,7 @@ export class Marker {
           x: x,
           y: y,
           radius: size,
-          fill: fillColor,
+          fill: undefined, // No fill, only outline
           stroke: border !== false ? border?.color || '#000' : undefined,
           strokeWidth: border !== false ? border?.weight || 2 : 0,
           dash: border !== false ? this.getDashPattern(border?.style || 'solid') : undefined,
@@ -132,7 +132,7 @@ export class Marker {
           y: y - size,
           width: size * 2,
           height: size * 2,
-          fill: fillColor,
+          fill: undefined, // No fill, only outline
           stroke: border !== false ? border?.color || '#000' : undefined,
           strokeWidth: border !== false ? border?.weight || 2 : 0,
           dash: border !== false ? this.getDashPattern(border?.style || 'solid') : undefined,
@@ -145,7 +145,7 @@ export class Marker {
           y: y,
           sides: 3,
           radius: size,
-          fill: fillColor,
+          fill: undefined, // No fill, only outline
           stroke: border !== false ? border?.color || '#000' : undefined,
           strokeWidth: border !== false ? border?.weight || 2 : 0,
           dash: border !== false ? this.getDashPattern(border?.style || 'solid') : undefined,
@@ -159,7 +159,7 @@ export class Marker {
           sides: 4,
           radius: size,
           rotation: 45,
-          fill: fillColor,
+          fill: undefined, // No fill, only outline
           stroke: border !== false ? border?.color || '#000' : undefined,
           strokeWidth: border !== false ? border?.weight || 2 : 0,
           dash: border !== false ? this.getDashPattern(border?.style || 'solid') : undefined,
