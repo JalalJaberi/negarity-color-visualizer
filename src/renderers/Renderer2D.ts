@@ -8,14 +8,16 @@ import { VisualizerConfig, PresetConfig, ColorPoint } from '../types';
 import {
   rgbToXy,
   getRgbGamutVertices,
-  getSpectralLocus,
-  xyToRgb,
 } from '../utils/colorConversion';
+import { CIEBackground, Axes, Marker, CoordinateSystem } from '../components';
 
 export class Renderer2D implements IRenderer {
   private stage: Konva.Stage | null = null;
   private layer: Konva.Layer | null = null;
   private config: VisualizerConfig | null = null;
+  private cieBackground: CIEBackground | null = null;
+  private axes: Axes | null = null;
+  private marker: Marker | null = null;
 
   init(container: HTMLElement, config: VisualizerConfig): void {
     this.config = config;
@@ -344,11 +346,26 @@ export class Renderer2D implements IRenderer {
     const offsetX = centerX - (maxX * scale) * 0.5; // Center horizontally
     const offsetY = centerY + (maxY * scale) * 0.5; // Flip Y axis (xy has y increasing upward)
 
+    // Create coordinate system
+    const coordinateSystem: CoordinateSystem = {
+      offsetX,
+      offsetY,
+      scale,
+      maxX,
+      maxY,
+    };
+
     // Get RGB gamut triangle vertices
     const vertices = getRgbGamutVertices();
 
-    // Draw CIE visible spectrum background first
-    this.renderVisibleSpectrum(offsetX, offsetY, scale, maxX, maxY);
+    // Initialize and render CIE background component
+    this.cieBackground = new CIEBackground();
+    this.cieBackground.init(this.layer, coordinateSystem, size, {
+      brightness: 1.0,
+      opacity: 0.85,
+      boundaryLine: false, // No boundary line by default
+    });
+    this.cieBackground.render();
 
     // Convert xy coordinates to screen coordinates using the same scale
     const screenVertices = vertices.map(([x, y]) => [
@@ -394,151 +411,48 @@ export class Renderer2D implements IRenderer {
 
     // White point (D65) removed per user request
 
-    // Draw axes if enabled
-    if (this.config?.showAxes !== false) {
-      // X axis (horizontal)
-      const xAxis = new Konva.Line({
-        points: [offsetX, offsetY, offsetX + maxX * scale, offsetY],
-        stroke: '#999',
-        strokeWidth: 1,
+    // Initialize and render axes component
+    this.axes = new Axes();
+    this.axes.init(this.layer, coordinateSystem, {
+      show: this.config?.showAxes !== false,
+      showLines: true,
+      showLabels: this.config?.showLabels !== false,
+      lineStyle: {
+        weight: 1,
+        color: '#999',
+        style: 'dashed',
         dash: [5, 5],
-      });
-      this.layer.add(xAxis);
+      },
+      labelStyle: {
+        fontSize: 14,
+        color: '#666',
+      },
+    });
+    this.axes.render();
 
-      // Y axis (vertical)
-      const yAxis = new Konva.Line({
-        points: [offsetX, offsetY, offsetX, offsetY - maxY * scale],
-        stroke: '#999',
-        strokeWidth: 1,
-        dash: [5, 5],
-      });
-      this.layer.add(yAxis);
+    // Initialize and render marker component
+    this.marker = new Marker();
+    this.marker.init(this.layer, coordinateSystem, {
+      show: true,
+      shape: 'circle',
+      size: 6,
+      border: {
+        weight: 2,
+        color: '#000',
+        style: 'solid',
+      },
+      showLabel: false,
+    });
 
-      // Axis labels
-      if (this.config?.showLabels !== false) {
-        const xLabel = new Konva.Text({
-          x: offsetX + maxX * scale - 20,
-          y: offsetY + 20,
-          text: 'x',
-          fontSize: 14,
-          fill: '#666',
-        });
-        this.layer.add(xLabel);
-
-        const yLabel = new Konva.Text({
-          x: offsetX - 25,
-          y: offsetY - maxY * scale + 15,
-          text: 'y',
-          fontSize: 14,
-          fill: '#666',
-        });
-        this.layer.add(yLabel);
-      }
-    }
-
-    // Plot the point if provided (inside RGB triangle)
+    // Plot the points if provided
     if (preset.points && preset.points.length > 0) {
       preset.points.forEach((point) => {
         if (point.values.length >= 3) {
           const [r, g, b] = point.values;
           const [x, y] = rgbToXy(r, g, b);
-
-          // Use the same scale and offset as above
-          const screenX = offsetX + x * scale;
-          const screenY = offsetY - y * scale;
-
-          // Always show the point with black border
-          const pointCircle = new Konva.Circle({
-            x: screenX,
-            y: screenY,
-            radius: 6,
-            fill: point.color,
-            stroke: '#000',
-            strokeWidth: 2,
-          });
-          this.layer!.add(pointCircle);
+          this.marker!.render(point, [x, y]);
         }
       });
     }
   }
-
-  /**
-   * Render the visible spectrum (CIE color space) background
-   */
-  private renderVisibleSpectrum(
-    offsetX: number,
-    offsetY: number,
-    scale: number,
-    maxX: number,
-    maxY: number
-  ): void {
-    if (!this.layer) return;
-
-    const spectralLocus = getSpectralLocus();
-
-    // Create a very high-resolution grid for ultra-smooth edges
-    const gridSize = 200; // Very high resolution for smooth, anti-aliased edges
-    const stepX = (maxX * scale) / gridSize;
-    const stepY = (maxY * scale) / gridSize;
-
-    // Draw color grid for visible spectrum - only inside the spectral locus
-    // Use smaller rectangles with better anti-aliasing for ultra-smooth edges
-    for (let i = 0; i < gridSize; i++) {
-      for (let j = 0; j < gridSize; j++) {
-        const x = i * stepX;
-        const y = j * stepY;
-        // Convert screen coordinates back to xy space
-        const xyX = (x / (maxX * scale)) * maxX;
-        const xyY = (y / (maxY * scale)) * maxY;
-
-        // Check if point is inside the spectral locus boundary
-        if (this.isPointInsideSpectralLocus([xyX, xyY], spectralLocus)) {
-          // Convert xy to RGB for display with maximum luminance for vivid colors
-          const [r, g, b] = xyToRgb(xyX, xyY, 1.0); // Maximum Y for brightest, most vibrant colors
-          const color = `rgb(${r}, ${g}, ${b})`;
-
-          const rect = new Konva.Rect({
-            x: offsetX + x,
-            y: offsetY - y,
-            width: stepX + 0.1, // Minimal overlap for seamless coverage
-            height: stepY + 0.1,
-            fill: color,
-            opacity: 0.85, // Higher opacity for more vivid colors while still showing RGB triangle
-            perfectDrawEnabled: false, // Disable perfect drawing for better performance
-            shadowForStrokeEnabled: false,
-          });
-          this.layer.add(rect);
-        }
-      }
-    }
-
-    // Spectral locus curve removed per user request - colors are enough
-  }
-
-  /**
-   * Check if a point is inside the spectral locus (CIE visible spectrum)
-   * Uses ray casting algorithm to determine if point is inside the closed curve
-   */
-  private isPointInsideSpectralLocus(
-    point: [number, number],
-    spectralLocus: Array<[number, number]>
-  ): boolean {
-    const [px, py] = point;
-    let inside = false;
-
-    // Ray casting algorithm
-    for (let i = 0, j = spectralLocus.length - 1; i < spectralLocus.length; j = i++) {
-      const [xi, yi] = spectralLocus[i];
-      const [xj, yj] = spectralLocus[j];
-
-      const intersect =
-        yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi;
-      if (intersect) {
-        inside = !inside;
-      }
-    }
-
-    return inside;
-  }
-
 }
