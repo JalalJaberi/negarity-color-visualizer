@@ -161,6 +161,15 @@ export class ColorVisualizer {
   }
 
   /**
+   * Update CMYK grid configuration (2D only)
+   */
+  updateCMYKGrid(config: Partial<import('./components/types').CMYKGridConfig>): void {
+    if (this.renderer && 'updateCMYKGrid' in this.renderer) {
+      (this.renderer as any).updateCMYKGrid(config);
+    }
+  }
+
+  /**
    * Destroy the visualizer and clean up resources
    */
   destroy(): void {

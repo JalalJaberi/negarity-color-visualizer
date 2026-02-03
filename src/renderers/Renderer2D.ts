@@ -8,10 +8,11 @@ import { VisualizerConfig, PresetConfig, ColorPoint } from '../types';
 import {
   rgbToXy,
   getRgbGamutVertices,
-  cmykToRgb,
+  getCmykGamutVertices,
   ycbcrToRgb,
+  cmykToRgb,
 } from '../utils/colorConversion';
-import { CIEBackground, Axes, Marker, HSLHueWheel, HSVHueWheel, CoordinateSystem } from '../components';
+import { CIEBackground, Axes, Marker, HSLHueWheel, HSVHueWheel, CMYKGrid, CoordinateSystem } from '../components';
 
 export class Renderer2D implements IRenderer {
   private stage: Konva.Stage | null = null;
@@ -22,6 +23,7 @@ export class Renderer2D implements IRenderer {
   private marker: Marker | null = null;
   private hslHueWheel: HSLHueWheel | null = null;
   private hsvHueWheel: HSVHueWheel | null = null;
+  private cmykGrid: CMYKGrid | null = null;
   private currentPreset: PresetConfig | null = null;
 
   init(container: HTMLElement, config: VisualizerConfig): void {
@@ -99,11 +101,13 @@ export class Renderer2D implements IRenderer {
 
     // Render color points if provided
     if (preset.points && preset.points.length > 0) {
-      // For HSL and HSV, use special rendering that positions markers on the hue wheel
+      // For HSL, HSV, and CMYK, use special rendering that positions markers correctly
       if (preset.colorSpace.name === 'HSL' && this.hslHueWheel) {
         this.renderHSLColorPoints(preset.points);
       } else if (preset.colorSpace.name === 'HSV' && this.hsvHueWheel) {
         this.renderHSVColorPoints(preset.points);
+      } else if (preset.colorSpace.name === 'CMYK') {
+        this.renderCMYKColorPoints(preset.points);
       } else {
         this.renderColorPoints(preset.points, centerX, centerY, size);
       }
@@ -639,6 +643,45 @@ export class Renderer2D implements IRenderer {
     }
   }
 
+  /**
+   * Update CMYK grid configuration and re-render
+   */
+  updateCMYKGrid(config: Partial<import('../components/types').CMYKGridConfig>): void {
+    if (!this.cmykGrid || !this.layer) {
+      // If grid doesn't exist or layer is not available, re-render the full preset
+      if (this.currentPreset) {
+        this.render(this.currentPreset);
+      }
+      return;
+    }
+    
+    // Update the config - this will merge with existing config
+    this.cmykGrid.updateConfig(config);
+    
+    // Re-render just the grid if it's already initialized
+    try {
+      const geometry = this.cmykGrid.getGeometry();
+      if (geometry.width > 0 && geometry.height > 0) {
+        // Re-render the grid with updated config
+        // The render() method will use the updated config from updateConfig()
+        this.cmykGrid.render();
+        
+        // Also re-render the color points if they exist
+        if (this.currentPreset && this.currentPreset.points && this.currentPreset.points.length > 0) {
+          this.renderCMYKColorPoints(this.currentPreset.points);
+        }
+        return;
+      }
+    } catch (e) {
+      // If there's an error, fall through to full re-render
+    }
+    
+    // Fallback: re-render the full preset
+    if (this.currentPreset) {
+      this.render(this.currentPreset);
+    }
+  }
+
   // Stub methods for other color spaces - basic implementations
   private renderHSV2D(
     centerX: number,
@@ -753,23 +796,150 @@ export class Renderer2D implements IRenderer {
     _preset: PresetConfig
   ): void {
     if (!this.layer) return;
-    // Render CMYK as C vs M plot
-    const width = size.width || 400;
-    const height = size.height || 400;
-    // Create a grid showing C vs M colors
-    for (let c = 0; c <= 100; c += 5) {
-      for (let m = 0; m <= 100; m += 5) {
-        const [r, g, b] = cmykToRgb(c, m, 0, 0);
-        const rect = new Konva.Rect({
-          x: centerX - width / 2 + (c / 100) * width,
-          y: centerY - height / 2 + (m / 100) * height,
-          width: width / 20,
-          height: height / 20,
-          fill: `rgb(${r}, ${g}, ${b})`,
-        });
-        this.layer.add(rect);
-      }
+
+    // Use the same CIE chromaticity diagram as RGB
+    // Calculate scale and offset for xy space (0-1) to screen coordinates
+    const maxX = 0.8; // Maximum x value in xy space
+    const maxY = 0.9; // Maximum y value in xy space
+    const scale = Math.min(size.width / maxX, size.height / maxY) * 0.7; // Use 70% of available space
+    const offsetX = centerX - (maxX * scale) * 0.5; // Center horizontally
+    const offsetY = centerY + (maxY * scale) * 0.5; // Flip Y axis (xy has y increasing upward)
+
+    // Create coordinate system
+    const coordinateSystem: CoordinateSystem = {
+      offsetX,
+      offsetY,
+      scale,
+      maxX,
+      maxY,
+    };
+
+    // Initialize and render CIE background component
+    // Reuse existing instance if config was updated, otherwise create new
+    if (!this.cieBackground) {
+      this.cieBackground = new CIEBackground();
+      // First time initialization - use defaults
+      this.cieBackground.init(this.layer, coordinateSystem, size, {});
+    } else {
+      // Component already exists - just update layer/coordinate system if needed
+      // and preserve the existing config (which may have been updated)
+      this.cieBackground.init(this.layer, coordinateSystem, size, {});
     }
+    this.cieBackground.render();
+
+    // Get CMYK gamut triangle vertices
+    const vertices = getCmykGamutVertices();
+
+    // Convert xy coordinates to screen coordinates using the same scale
+    const screenVertices = vertices.map(([x, y]) => [
+      offsetX + x * scale,
+      offsetY - y * scale, // Flip Y
+    ]);
+
+    // Draw the CMYK gamut quadrilateral with thin dotted line
+    const quadrilateral = new Konva.Line({
+      points: [
+        screenVertices[0][0],
+        screenVertices[0][1],
+        screenVertices[1][0],
+        screenVertices[1][1],
+        screenVertices[2][0],
+        screenVertices[2][1],
+        screenVertices[3][0],
+        screenVertices[3][1],
+        screenVertices[0][0],
+        screenVertices[0][1], // Close the quadrilateral
+      ],
+      stroke: '#333',
+      strokeWidth: 1,
+      dash: [5, 5],
+      fill: 'rgba(200, 200, 200, 0.1)',
+      closed: true,
+    });
+    this.layer.add(quadrilateral);
+
+    // Draw vertex labels only (no black circles)
+    // Labels match the vertex order: C -> CM -> M -> Y
+    const vertexLabels = ['C', 'CM', 'M', 'Y'];
+    screenVertices.forEach(([x, y], index) => {
+      if (this.config?.showLabels !== false) {
+        const label = new Konva.Text({
+          x: x + 8,
+          y: y - 8,
+          text: vertexLabels[index],
+          fontSize: 14,
+          fill: '#333',
+          fontStyle: 'bold',
+        });
+        this.layer!.add(label);
+      }
+    });
+
+    // Initialize and render axes component
+    // Reuse existing instance if config was updated, otherwise create new
+    if (!this.axes) {
+      this.axes = new Axes();
+    }
+    // Get existing config (which may have been updated) and pass it to init
+    // The component's init() will merge it with defaults
+    const existingAxesConfig = this.axes.getConfig();
+    // Merge with initial defaults if config is empty
+    const axesConfigToUse = Object.keys(existingAxesConfig).length > 0 
+      ? existingAxesConfig 
+      : {
+          show: this.config?.showAxes !== false,
+          showLines: true,
+          showLabels: this.config?.showLabels !== false,
+        };
+    this.axes.init(this.layer, coordinateSystem, axesConfigToUse);
+    this.axes.render();
+  }
+
+  /**
+   * Render CMYK color points on the CIE chromaticity diagram
+   */
+  private renderCMYKColorPoints(points: ColorPoint[]): void {
+    if (!this.layer) return;
+
+    // Initialize marker if needed
+    if (!this.marker) {
+      this.marker = new Marker();
+    }
+
+    // Use the same coordinate system as the CIE background
+    const size = this.currentPreset?.size || { width: 400, height: 400 };
+    const centerX = this.stage!.width() / 2;
+    const centerY = this.stage!.height() / 2;
+    const maxX = 0.8;
+    const maxY = 0.9;
+    const scale = Math.min(size.width / maxX, size.height / maxY) * 0.7;
+    const offsetX = centerX - (maxX * scale) * 0.5;
+    const offsetY = centerY + (maxY * scale) * 0.5;
+
+    const coordinateSystem: CoordinateSystem = {
+      offsetX,
+      offsetY,
+      scale,
+      maxX,
+      maxY,
+    };
+    
+    this.marker.init(this.layer, coordinateSystem, {});
+
+    points.forEach((point) => {
+      if (point.values.length >= 4) {
+        const [c, m, y, k] = point.values; // CMYK values: C (0-100), M (0-100), Y (0-100), K (0-100)
+        
+        // Convert CMYK to RGB
+        const [r, g, b] = cmykToRgb(c, m, y, k);
+        
+        // Convert RGB to xy chromaticity coordinates
+        const [x_chrom, y_chrom] = rgbToXy(r, g, b);
+        
+        // Render the marker at the xy coordinates
+        this.marker!.render(point, [x_chrom, y_chrom]);
+      }
+    });
   }
 
   private renderXYZ2D(

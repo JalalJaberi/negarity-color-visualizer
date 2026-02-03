@@ -72,3 +72,19 @@ visualizer.render(cmykPreset);
 window.addEventListener('resize', () => {
   visualizer.handleResize();
 });
+
+// Expose update functions for component controls
+(window as any).updateCIEBackgroundFn = (config: any) => {
+  if (!config) {
+    return;
+  }
+  visualizer.updateCIEBackground(config);
+};
+
+(window as any).updateAxesFn = (config: any) => {
+  visualizer.updateAxes(config);
+};
+
+(window as any).updateMarkerFn = (config: any) => {
+  visualizer.updateMarker(config);
+};

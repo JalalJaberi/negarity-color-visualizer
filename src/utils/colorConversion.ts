@@ -83,6 +83,36 @@ export function getRgbGamutVertices(): Array<[number, number]> {
 }
 
 /**
+ * Get CMYK gamut quadrilateral vertices in xy space
+ * Returns the four vertices in proper order to form a non-intersecting quadrilateral
+ * CMYK primaries and their combinations are converted to RGB, then to XYZ, then to xy
+ * Order: Cyan -> CM (Cyan+Magenta) -> Magenta -> Yellow -> back to Cyan
+ * This order ensures no line intersections
+ */
+export function getCmykGamutVertices(): Array<[number, number]> {
+  // CMYK primaries: Cyan (100,0,0,0), Magenta (0,100,0,0), Yellow (0,0,100,0)
+  // Use CM combination (100,100,0,0) which gives Blue, forming a proper quadrilateral
+  const cyanRgb = cmykToRgb(100, 0, 0, 0);
+  const magentaRgb = cmykToRgb(0, 100, 0, 0);
+  const yellowRgb = cmykToRgb(0, 0, 100, 0);
+  const cmRgb = cmykToRgb(100, 100, 0, 0); // Cyan + Magenta = Blue
+  
+  const cyanXy = rgbToXy(cyanRgb[0], cyanRgb[1], cyanRgb[2]);
+  const magentaXy = rgbToXy(magentaRgb[0], magentaRgb[1], magentaRgb[2]);
+  const yellowXy = rgbToXy(yellowRgb[0], yellowRgb[1], yellowRgb[2]);
+  const cmXy = rgbToXy(cmRgb[0], cmRgb[1], cmRgb[2]);
+  
+  // Return in order: C -> CM -> M -> Y (forms a quadrilateral without intersections)
+  // This order connects: Cyan -> Blue -> Magenta -> Yellow -> back to Cyan
+  return [
+    cyanXy,    // Cyan (first vertex)
+    cmXy,       // CM (Blue) (second vertex, between C and M)
+    magentaXy, // Magenta (third vertex)
+    yellowXy,   // Yellow (fourth vertex)
+  ];
+}
+
+/**
  * Get the white point (D65) in xy space
  */
 export function getD65WhitePoint(): [number, number] {

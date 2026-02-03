@@ -89,3 +89,15 @@ export interface HSVHueWheelConfig {
   showDividers?: boolean; // Show lines between segments
   dividerStyle?: LineStyle;
 }
+
+/**
+ * CMYK Grid configuration
+ */
+export interface CMYKGridConfig {
+  show?: boolean;
+  yellow?: number; // 0-100, default 0
+  key?: number; // 0-100, default 0 (black)
+  gridSize?: number; // Step size for grid (default 5)
+  showGrid?: boolean; // Show grid lines
+  gridStyle?: LineStyle;
+}
