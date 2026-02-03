@@ -121,7 +121,7 @@ export class Renderer2D implements IRenderer {
       } else if (preset.colorSpace.name === 'YCbCr') {
         this.renderYCbCrColorPoints(preset.points);
       } else {
-        this.renderColorPoints(preset.points, centerX, centerY, size);
+        // this.renderColorPoints(preset.points, centerX, centerY, size);
       }
     }
 
