@@ -83,32 +83,35 @@ export function getRgbGamutVertices(): Array<[number, number]> {
 }
 
 /**
- * Get CMYK gamut quadrilateral vertices in xy space
- * Returns the four vertices in proper order to form a non-intersecting quadrilateral
+ * Get CMYK gamut pentagon vertices in xy space
+ * Returns the five vertices in proper order to form a non-intersecting pentagon
  * CMYK primaries and their combinations are converted to RGB, then to XYZ, then to xy
- * Order: Cyan -> CM (Cyan+Magenta) -> Magenta -> Yellow -> back to Cyan
- * This order ensures no line intersections
+ * Order: Cyan -> CM (Blue) -> Magenta -> MY (Red) -> Yellow -> back to Cyan
+ * This order ensures no line intersections and forms a proper 5-sided shape
  */
 export function getCmykGamutVertices(): Array<[number, number]> {
   // CMYK primaries: Cyan (100,0,0,0), Magenta (0,100,0,0), Yellow (0,0,100,0)
-  // Use CM combination (100,100,0,0) which gives Blue, forming a proper quadrilateral
+  // Use combinations: CM (Cyan+Magenta=Blue), MY (Magenta+Yellow=Red)
   const cyanRgb = cmykToRgb(100, 0, 0, 0);
   const magentaRgb = cmykToRgb(0, 100, 0, 0);
   const yellowRgb = cmykToRgb(0, 0, 100, 0);
   const cmRgb = cmykToRgb(100, 100, 0, 0); // Cyan + Magenta = Blue
+  const myRgb = cmykToRgb(0, 100, 100, 0); // Magenta + Yellow = Red
   
   const cyanXy = rgbToXy(cyanRgb[0], cyanRgb[1], cyanRgb[2]);
   const magentaXy = rgbToXy(magentaRgb[0], magentaRgb[1], magentaRgb[2]);
   const yellowXy = rgbToXy(yellowRgb[0], yellowRgb[1], yellowRgb[2]);
   const cmXy = rgbToXy(cmRgb[0], cmRgb[1], cmRgb[2]);
+  const myXy = rgbToXy(myRgb[0], myRgb[1], myRgb[2]);
   
-  // Return in order: C -> CM -> M -> Y (forms a quadrilateral without intersections)
-  // This order connects: Cyan -> Blue -> Magenta -> Yellow -> back to Cyan
+  // Return in order: C -> CM -> M -> MY -> Y (forms a pentagon without intersections)
+  // This order connects: Cyan -> Blue -> Magenta -> Red -> Yellow -> back to Cyan
   return [
     cyanXy,    // Cyan (first vertex)
-    cmXy,       // CM (Blue) (second vertex, between C and M)
+    cmXy,      // CM (Blue) (second vertex)
     magentaXy, // Magenta (third vertex)
-    yellowXy,   // Yellow (fourth vertex)
+    myXy,      // MY (Red) (fourth vertex)
+    yellowXy,  // Yellow (fifth vertex)
   ];
 }
 

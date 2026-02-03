@@ -827,7 +827,7 @@ export class Renderer2D implements IRenderer {
     }
     this.cieBackground.render();
 
-    // Get CMYK gamut triangle vertices
+    // Get CMYK gamut pentagon vertices
     const vertices = getCmykGamutVertices();
 
     // Convert xy coordinates to screen coordinates using the same scale
@@ -836,8 +836,8 @@ export class Renderer2D implements IRenderer {
       offsetY - y * scale, // Flip Y
     ]);
 
-    // Draw the CMYK gamut quadrilateral with thin dotted line
-    const quadrilateral = new Konva.Line({
+    // Draw the CMYK gamut pentagon with thin dotted line
+    const pentagon = new Konva.Line({
       points: [
         screenVertices[0][0],
         screenVertices[0][1],
@@ -847,8 +847,10 @@ export class Renderer2D implements IRenderer {
         screenVertices[2][1],
         screenVertices[3][0],
         screenVertices[3][1],
+        screenVertices[4][0],
+        screenVertices[4][1],
         screenVertices[0][0],
-        screenVertices[0][1], // Close the quadrilateral
+        screenVertices[0][1], // Close the pentagon
       ],
       stroke: '#333',
       strokeWidth: 1,
@@ -856,11 +858,11 @@ export class Renderer2D implements IRenderer {
       fill: 'rgba(200, 200, 200, 0.1)',
       closed: true,
     });
-    this.layer.add(quadrilateral);
+    this.layer.add(pentagon);
 
     // Draw vertex labels only (no black circles)
-    // Labels match the vertex order: C -> CM -> M -> Y
-    const vertexLabels = ['C', 'CM', 'M', 'Y'];
+    // Labels match the vertex order: C -> CM -> M -> MY -> Y
+    const vertexLabels = ['C', 'CM', 'M', 'MY', 'Y'];
     screenVertices.forEach(([x, y], index) => {
       if (this.config?.showLabels !== false) {
         const label = new Konva.Text({
