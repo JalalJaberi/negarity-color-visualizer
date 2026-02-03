@@ -7,6 +7,7 @@ import { IRenderer } from '../types';
 import { VisualizerConfig, PresetConfig, ColorPoint } from '../types';
 import {
   rgbToXy,
+  xyzToXy,
   getRgbGamutVertices,
   getCmykGamutVertices,
   ycbcrToRgb,
@@ -101,13 +102,15 @@ export class Renderer2D implements IRenderer {
 
     // Render color points if provided
     if (preset.points && preset.points.length > 0) {
-      // For HSL, HSV, and CMYK, use special rendering that positions markers correctly
+      // For HSL, HSV, CMYK, and XYZ, use special rendering that positions markers correctly
       if (preset.colorSpace.name === 'HSL' && this.hslHueWheel) {
         this.renderHSLColorPoints(preset.points);
       } else if (preset.colorSpace.name === 'HSV' && this.hsvHueWheel) {
         this.renderHSVColorPoints(preset.points);
       } else if (preset.colorSpace.name === 'CMYK') {
         this.renderCMYKColorPoints(preset.points);
+      } else if (preset.colorSpace.name === 'XYZ') {
+        this.renderXYZColorPoints(preset.points);
       } else {
         this.renderColorPoints(preset.points, centerX, centerY, size);
       }
@@ -944,14 +947,109 @@ export class Renderer2D implements IRenderer {
     });
   }
 
+  /**
+   * Render XYZ color points on the CIE chromaticity diagram
+   */
+  private renderXYZColorPoints(points: ColorPoint[]): void {
+    if (!this.layer) return;
+
+    // Initialize marker if needed
+    if (!this.marker) {
+      this.marker = new Marker();
+    }
+
+    // Use the same coordinate system as the CIE background
+    const size = this.currentPreset?.size || { width: 400, height: 400 };
+    const centerX = this.stage!.width() / 2;
+    const centerY = this.stage!.height() / 2;
+    const maxX = 0.8;
+    const maxY = 0.9;
+    const scale = Math.min(size.width / maxX, size.height / maxY) * 0.7;
+    const offsetX = centerX - (maxX * scale) * 0.5;
+    const offsetY = centerY + (maxY * scale) * 0.5;
+
+    const coordinateSystem: CoordinateSystem = {
+      offsetX,
+      offsetY,
+      scale,
+      maxX,
+      maxY,
+    };
+    
+    this.marker.init(this.layer, coordinateSystem, {});
+
+    points.forEach((point) => {
+      if (point.values.length >= 3) {
+        const [x, y, z] = point.values; // XYZ values (typically 0-100, but can vary)
+        
+        // Convert XYZ directly to xy chromaticity coordinates
+        const [x_chrom, y_chrom] = xyzToXy(x, y, z);
+        
+        // Render the marker at the xy coordinates
+        this.marker!.render(point, [x_chrom, y_chrom]);
+      }
+    });
+  }
+
   private renderXYZ2D(
     centerX: number,
     centerY: number,
     size: { width: number; height: number; depth?: number },
-    preset: PresetConfig
+    _preset: PresetConfig
   ): void {
-    // Use existing RGB chromaticity rendering for XYZ
-    this.renderRgbChromaticity(centerX, centerY, size, preset);
+    if (!this.layer) return;
+
+    // Calculate scale and offset for xy space (0-1) to screen coordinates
+    // xy space typically ranges from about 0 to 0.8 for x and 0 to 0.9 for y
+    const maxX = 0.8; // Maximum x value in xy space
+    const maxY = 0.9; // Maximum y value in xy space
+    const scale = Math.min(size.width / maxX, size.height / maxY) * 0.7; // Use 70% of available space
+    const offsetX = centerX - (maxX * scale) * 0.5; // Center horizontally
+    const offsetY = centerY + (maxY * scale) * 0.5; // Flip Y axis (xy has y increasing upward)
+
+    // Create coordinate system
+    const coordinateSystem: CoordinateSystem = {
+      offsetX,
+      offsetY,
+      scale,
+      maxX,
+      maxY,
+    };
+
+    // Initialize and render CIE background component
+    // XYZ represents the entire visible color spectrum, so no gamut limitation is shown
+    if (!this.cieBackground) {
+      this.cieBackground = new CIEBackground();
+      this.cieBackground.init(this.layer, coordinateSystem, size, {});
+    } else {
+      this.cieBackground.init(this.layer, coordinateSystem, size, {});
+    }
+    this.cieBackground.render();
+
+    // Initialize and render axes component
+    if (!this.axes) {
+      this.axes = new Axes();
+    }
+    const existingAxesConfig = this.axes.getConfig();
+    const axesConfigToUse = Object.keys(existingAxesConfig).length > 0 
+      ? existingAxesConfig 
+      : {
+          show: this.config?.showAxes !== false,
+          showLines: true,
+          showLabels: this.config?.showLabels !== false,
+        };
+    this.axes.init(this.layer, coordinateSystem, axesConfigToUse);
+    this.axes.render();
+
+    // Initialize marker component (points will be rendered separately in renderXYZColorPoints)
+    if (!this.marker) {
+      this.marker = new Marker();
+    }
+    const existingMarkerConfig = this.marker.getConfig();
+    this.marker.init(this.layer, coordinateSystem, existingMarkerConfig);
+    
+    // Note: Points are NOT rendered here - they are rendered in renderXYZColorPoints
+    // to avoid double rendering
   }
 
   private renderLab2D(

@@ -199,6 +199,49 @@ export function getSpectralLocus(): Array<[number, number]> {
 }
 
 /**
+ * Convert XYZ to RGB (sRGB D65)
+ * XYZ values are expected to be in 0-100 range
+ * Returns RGB values in 0-255 range
+ */
+export function xyzToRgb(x: number, y: number, z: number): [number, number, number] {
+  // Normalize XYZ from 0-100 to 0-1
+  const X = x / 100;
+  const Y = y / 100;
+  const Z = z / 100;
+
+  // Convert XYZ to linear RGB (inverse of sRGB matrix)
+  const matrix = [
+    [3.2404542, -1.5371385, -0.4985314],
+    [-0.9692660, 1.8760108, 0.0415560],
+    [0.0556434, -0.2040259, 1.0572252],
+  ];
+
+  let r = X * matrix[0][0] + Y * matrix[0][1] + Z * matrix[0][2];
+  let g = X * matrix[1][0] + Y * matrix[1][1] + Z * matrix[1][2];
+  let b = X * matrix[2][0] + Y * matrix[2][1] + Z * matrix[2][2];
+
+  // Apply gamma correction
+  const gammaCorrect = (val: number): number => {
+    if (val <= 0.0031308) {
+      return 12.92 * val;
+    } else {
+      return 1.055 * Math.pow(val, 1 / 2.4) - 0.055;
+    }
+  };
+
+  r = gammaCorrect(r);
+  g = gammaCorrect(g);
+  b = gammaCorrect(b);
+
+  // Clamp to 0-255 (XYZ has wider gamut than sRGB)
+  return [
+    Math.max(0, Math.min(255, Math.round(r * 255))),
+    Math.max(0, Math.min(255, Math.round(g * 255))),
+    Math.max(0, Math.min(255, Math.round(b * 255))),
+  ];
+}
+
+/**
  * Convert xy chromaticity to approximate RGB color
  * Note: This is an approximation and may produce out-of-gamut colors
  */

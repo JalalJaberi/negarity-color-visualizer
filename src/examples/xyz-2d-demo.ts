@@ -5,6 +5,7 @@
 
 import { ColorVisualizer, XYZ_COLOR_SPACE } from '../index';
 import { PresetConfig } from '../types';
+import { xyzToRgb } from '../utils/colorConversion';
 
 const container = document.getElementById('xyz-visualizer');
 if (!container) {
@@ -21,9 +22,9 @@ const xyzPreset: PresetConfig = {
   },
   points: [
     {
-      values: [24.0, 18.0, 3.0], // XYZ values for red
-      color: '#ff0000',
-      label: 'Red',
+      values: [24.0, 18.0, 3.0], // XYZ values
+      color: '#ff0000', // Will be updated based on XYZ conversion
+      label: 'Sample Point',
     },
   ],
   config: {
@@ -52,8 +53,9 @@ const visualizer = new ColorVisualizer(container, {
 visualizer.render(xyzPreset);
 
 (window as any).updatePoint = (x: number, y: number, z: number, label?: string) => {
-  // Convert XYZ to RGB for display (placeholder - would need proper XYZ to RGB conversion)
-  const hexColor = '#ff0000';
+  // Convert XYZ to RGB for display
+  const [r, g, b] = xyzToRgb(x, y, z);
+  const hexColor = `#${Math.round(r).toString(16).padStart(2, '0')}${Math.round(g).toString(16).padStart(2, '0')}${Math.round(b).toString(16).padStart(2, '0')}`;
 
   const newPreset: PresetConfig = {
     ...xyzPreset,
@@ -61,7 +63,7 @@ visualizer.render(xyzPreset);
       {
         values: [x, y, z],
         color: hexColor,
-        label: label || `XYZ(${x}, ${y}, ${z})`,
+        label: label || `XYZ(${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)})`,
       },
     ],
   };
@@ -72,3 +74,22 @@ visualizer.render(xyzPreset);
 window.addEventListener('resize', () => {
   visualizer.handleResize();
 });
+
+// Expose update functions for CIE background, axes, and marker
+(window as any).updateCIEBackgroundFn = (config?: any) => {
+  if (config) {
+    visualizer.updateCIEBackground(config);
+  }
+};
+
+(window as any).updateAxesFn = (config?: any) => {
+  if (config) {
+    visualizer.updateAxes(config);
+  }
+};
+
+(window as any).updateMarkerFn = (config?: any) => {
+  if (config) {
+    visualizer.updateMarker(config);
+  }
+};
