@@ -10,6 +10,7 @@ import {
   xyzToXy,
   getRgbGamutVertices,
   getCmykGamutVertices,
+  getYcbcrGamutVertices,
   ycbcrToRgb,
   cmykToRgb,
   labToXyz,
@@ -117,6 +118,8 @@ export class Renderer2D implements IRenderer {
         this.renderLabColorPoints(preset.points);
       } else if (preset.colorSpace.name === 'LCh') {
         this.renderLChColorPoints(preset.points);
+      } else if (preset.colorSpace.name === 'YCbCr') {
+        this.renderYCbCrColorPoints(preset.points);
       } else {
         this.renderColorPoints(preset.points, centerX, centerY, size);
       }
@@ -1276,23 +1279,140 @@ export class Renderer2D implements IRenderer {
     _preset: PresetConfig
   ): void {
     if (!this.layer) return;
-    // Render YCbCr as Cb vs Cr plot
-    const width = size.width || 400;
-    const height = size.height || 400;
-    // Create a grid showing Cb vs Cr colors
-    const fixedY = 128; // Default luma
-    for (let cb = 16; cb <= 240; cb += 10) {
-      for (let cr = 16; cr <= 240; cr += 10) {
-        const [r, g, b] = ycbcrToRgb(fixedY, cb, cr);
-        const rect = new Konva.Rect({
-          x: centerX - width / 2 + ((cb - 16) / 224) * width,
-          y: centerY - height / 2 + ((cr - 16) / 224) * height,
-          width: width / 22,
-          height: height / 22,
-          fill: `rgb(${r}, ${g}, ${b})`,
-        });
-        this.layer.add(rect);
-      }
+
+    // Use CIE XYZ chromaticity diagram with YCbCr gamut triangle (same as RGB)
+    // Calculate scale and offset for xy space (0-1) to screen coordinates
+    const maxX = 0.8; // Maximum x value in xy space
+    const maxY = 0.9; // Maximum y value in xy space
+    const scale = Math.min(size.width / maxX, size.height / maxY) * 0.7; // Use 70% of available space
+    const offsetX = centerX - (maxX * scale) * 0.5; // Center horizontally
+    const offsetY = centerY + (maxY * scale) * 0.5; // Flip Y axis (xy has y increasing upward)
+
+    // Create coordinate system
+    const coordinateSystem: CoordinateSystem = {
+      offsetX,
+      offsetY,
+      scale,
+      maxX,
+      maxY,
+    };
+
+    // Get YCbCr gamut triangle vertices (same as RGB since YCbCr is a linear transformation of RGB)
+    const vertices = getYcbcrGamutVertices();
+
+    // Initialize and render CIE background component
+    if (!this.cieBackground) {
+      this.cieBackground = new CIEBackground();
+      this.cieBackground.init(this.layer, coordinateSystem, size, {});
+    } else {
+      this.cieBackground.init(this.layer, coordinateSystem, size, {});
     }
+    this.cieBackground.render();
+
+    // Convert xy coordinates to screen coordinates using the same scale
+    const screenVertices = vertices.map(([x, y]) => [
+      offsetX + x * scale,
+      offsetY - y * scale, // Flip Y
+    ]);
+
+    // Draw the YCbCr gamut triangle with thin dotted line
+    const triangle = new Konva.Line({
+      points: [
+        screenVertices[0][0], screenVertices[0][1], // Red
+        screenVertices[1][0], screenVertices[1][1], // Green
+        screenVertices[2][0], screenVertices[2][1], // Blue
+        screenVertices[0][0], screenVertices[0][1], // Back to Red
+      ],
+      stroke: '#000000',
+      strokeWidth: 1,
+      lineDash: [4, 4],
+      closed: true,
+    });
+    this.layer.add(triangle);
+
+    // Add labels for R, G, B at the vertices
+    const labels = ['R', 'G', 'B'];
+    const labelColors = ['#ff0000', '#00ff00', '#0000ff'];
+    screenVertices.forEach(([x, y], index) => {
+      const label = new Konva.Text({
+        x: x - 10,
+        y: y - 10,
+        text: labels[index],
+        fontSize: 16,
+        fontFamily: 'Arial',
+        fill: labelColors[index],
+        fontStyle: 'bold',
+      });
+      if (this.layer) {
+        this.layer.add(label);
+      }
+    });
+
+    // Initialize and render axes component
+    if (!this.axes) {
+      this.axes = new Axes();
+    }
+    const existingAxesConfig = this.axes.getConfig();
+    const axesConfigToUse = Object.keys(existingAxesConfig).length > 0 
+      ? existingAxesConfig 
+      : {
+          show: this.config?.showAxes !== false,
+          showLines: true,
+          showLabels: this.config?.showLabels !== false,
+        };
+    this.axes.init(this.layer, coordinateSystem, axesConfigToUse);
+    this.axes.render();
+
+    // Initialize marker component (points will be rendered separately in renderYCbCrColorPoints)
+    if (!this.marker) {
+      this.marker = new Marker();
+    }
+    const existingMarkerConfig = this.marker.getConfig();
+    this.marker.init(this.layer, coordinateSystem, existingMarkerConfig);
+  }
+
+  /**
+   * Render YCbCr color points on the CIE chromaticity diagram
+   */
+  private renderYCbCrColorPoints(points: ColorPoint[]): void {
+    if (!this.layer) return;
+
+    // Initialize marker if needed
+    if (!this.marker) {
+      this.marker = new Marker();
+    }
+
+    // Use the same coordinate system as the CIE background
+    const size = this.currentPreset?.size || { width: 400, height: 400 };
+    const centerX = this.stage!.width() / 2;
+    const centerY = this.stage!.height() / 2;
+    const maxX = 0.8;
+    const maxY = 0.9;
+    const scale = Math.min(size.width / maxX, size.height / maxY) * 0.7;
+    const offsetX = centerX - (maxX * scale) * 0.5;
+    const offsetY = centerY + (maxY * scale) * 0.5;
+
+    const coordinateSystem: CoordinateSystem = {
+      offsetX,
+      offsetY,
+      scale,
+      maxX,
+      maxY,
+    };
+    
+    this.marker.init(this.layer, coordinateSystem, {});
+
+    points.forEach((point) => {
+      if (point.values.length >= 3) {
+        const [y, cb, cr] = point.values; // YCbCr values: Y (16-235), Cb (16-240), Cr (16-240)
+        
+        // Convert YCbCr to RGB, then to XYZ, then to xy chromaticity coordinates
+        const [r, g, b] = ycbcrToRgb(y, cb, cr);
+        const [x_chrom, y_chrom] = rgbToXy(r, g, b);
+        
+        // Render the marker at the xy coordinates
+        this.marker!.render(point, [x_chrom, y_chrom]);
+      }
+    });
   }
 }

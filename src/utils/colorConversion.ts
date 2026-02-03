@@ -83,6 +83,47 @@ export function getRgbGamutVertices(): Array<[number, number]> {
 }
 
 /**
+ * Get YCbCr gamut triangle vertices in xy space
+ * YCbCr is a linear transformation of RGB using the same primaries (sRGB/Rec.709)
+ * The chromaticity gamut (xy triangle) is identical to RGB because:
+ * 1. YCbCr uses the same RGB primaries as sRGB
+ * 2. The transformation only affects how brightness and chroma are encoded, not the primaries
+ * 3. The xy chromaticity coordinates represent hue/saturation, which are independent of the encoding
+ * 
+ * However, we calculate it explicitly by converting RGB primaries through YCbCr to verify
+ */
+export function getYcbcrGamutVertices(): Array<[number, number]> {
+  // YCbCr (ITU-R BT.601/BT.709) uses the same RGB primaries as sRGB
+  // The chromaticity gamut triangle should be identical
+  // We verify this by converting RGB primaries to YCbCr and back
+  
+  // RGB primaries: Red (255,0,0), Green (0,255,0), Blue (0,0,255)
+  const redRgb = [255, 0, 0];
+  const greenRgb = [0, 255, 0];
+  const blueRgb = [0, 0, 255];
+  
+  // Convert to YCbCr and back to RGB to verify the gamut
+  // (This should give us the same RGB values, confirming same primaries)
+  const redYcbcr = rgbToYcbcr(redRgb[0], redRgb[1], redRgb[2]);
+  const greenYcbcr = rgbToYcbcr(greenRgb[0], greenRgb[1], greenRgb[2]);
+  const blueYcbcr = rgbToYcbcr(blueRgb[0], blueRgb[1], blueRgb[2]);
+  
+  // Convert back to RGB (should be same as original)
+  const redRgbBack = ycbcrToRgb(redYcbcr[0], redYcbcr[1], redYcbcr[2]);
+  const greenRgbBack = ycbcrToRgb(greenYcbcr[0], greenYcbcr[1], greenYcbcr[2]);
+  const blueRgbBack = ycbcrToRgb(blueYcbcr[0], blueYcbcr[1], blueYcbcr[2]);
+  
+  // Convert to xy chromaticity coordinates
+  // Since YCbCr uses the same RGB primaries, the xy coordinates should be identical
+  const redXy = rgbToXy(redRgbBack[0], redRgbBack[1], redRgbBack[2]);
+  const greenXy = rgbToXy(greenRgbBack[0], greenRgbBack[1], greenRgbBack[2]);
+  const blueXy = rgbToXy(blueRgbBack[0], blueRgbBack[1], blueRgbBack[2]);
+  
+  // Return in order: Red, Green, Blue (same as RGB gamut)
+  return [redXy, greenXy, blueXy];
+}
+
+/**
  * Get CMYK gamut pentagon vertices in xy space
  * Returns the five vertices in proper order to form a non-intersecting pentagon
  * CMYK primaries and their combinations are converted to RGB, then to XYZ, then to xy

@@ -1,11 +1,11 @@
 /**
  * YCbCr 2D Visualization Example
- * Shows Cb vs Cr plot
+ * Shows CIE chromaticity diagram with YCbCr gamut triangle
  */
 
 import { ColorVisualizer, YCBCR_COLOR_SPACE } from '../index';
 import { PresetConfig } from '../types';
-import { ycbcrToRgb } from '../utils/colorConversion';
+import { ycbcrToRgb, rgbToYcbcr } from '../utils/colorConversion';
 
 const container = document.getElementById('ycbcr-visualizer');
 if (!container) {
@@ -13,7 +13,7 @@ if (!container) {
 }
 
 const ycbcrPreset: PresetConfig = {
-  name: 'YCbCr Cb vs Cr',
+  name: 'YCbCr Chromaticity',
   colorSpace: YCBCR_COLOR_SPACE,
   shape: 'custom',
   size: {
@@ -22,9 +22,9 @@ const ycbcrPreset: PresetConfig = {
   },
   points: [
     {
-      values: [128, 128, 128], // YCbCr: Y=128, Cb=128, Cr=128 (neutral)
+      values: [128, 128, 128], // YCbCr: Y=128, Cb=128, Cr=128 (neutral gray)
       color: '#808080',
-      label: 'Neutral',
+      label: 'Neutral Gray',
     },
   ],
   config: {
@@ -72,3 +72,27 @@ visualizer.render(ycbcrPreset);
 window.addEventListener('resize', () => {
   visualizer.handleResize();
 });
+
+// Expose update functions for CIE background, axes, and marker
+(window as any).updateCIEBackgroundFn = (config?: any) => {
+  if (config) {
+    visualizer.updateCIEBackground(config);
+  }
+};
+
+(window as any).updateAxesFn = (config?: any) => {
+  if (config) {
+    visualizer.updateAxes(config);
+  }
+};
+
+(window as any).updateMarkerFn = (config?: any) => {
+  if (config) {
+    visualizer.updateMarker(config);
+  }
+};
+
+// Expose rgbToYcbcr for HTML use
+(window as any).rgbToYcbcr = (r: number, g: number, b: number) => {
+  return rgbToYcbcr(r, g, b);
+};
