@@ -13,6 +13,7 @@ import {
   ycbcrToRgb,
   cmykToRgb,
   labToXyz,
+  lchToLab,
 } from '../utils/colorConversion';
 import { CIEBackground, Axes, Marker, HSLHueWheel, HSVHueWheel, CMYKGrid, CoordinateSystem } from '../components';
 
@@ -114,6 +115,8 @@ export class Renderer2D implements IRenderer {
         this.renderXYZColorPoints(preset.points);
       } else if (preset.colorSpace.name === 'LAB') {
         this.renderLabColorPoints(preset.points);
+      } else if (preset.colorSpace.name === 'LCh') {
+        this.renderLChColorPoints(preset.points);
       } else {
         this.renderColorPoints(preset.points, centerX, centerY, size);
       }
@@ -1161,16 +1164,109 @@ export class Renderer2D implements IRenderer {
   }
 
   private renderLCh2D(
-    _centerX: number,
-    _centerY: number,
+    centerX: number,
+    centerY: number,
     size: { width: number; height: number; depth?: number },
     _preset: PresetConfig
   ): void {
     if (!this.layer) return;
-    // Render LCh as polar: Chroma vs Hue - simplified version
+
+    // Use CIE XYZ chromaticity diagram (same as Lab/XYZ) but without RGB gamut triangle
+    // LCh colors are converted to Lab, then to XYZ, then to xy chromaticity coordinates
+    
+    // Calculate scale and offset for xy space (0-1) to screen coordinates
+    const maxX = 0.8; // Maximum x value in xy space
+    const maxY = 0.9; // Maximum y value in xy space
+    const scale = Math.min(size.width / maxX, size.height / maxY) * 0.7; // Use 70% of available space
+    const offsetX = centerX - (maxX * scale) * 0.5; // Center horizontally
+    const offsetY = centerY + (maxY * scale) * 0.5; // Flip Y axis (xy has y increasing upward)
+
+    // Create coordinate system
+    const coordinateSystem: CoordinateSystem = {
+      offsetX,
+      offsetY,
+      scale,
+      maxX,
+      maxY,
+    };
+
+    // Initialize and render CIE background component
+    // LCh represents colors that can be converted to Lab/XYZ, so show full CIE diagram
+    if (!this.cieBackground) {
+      this.cieBackground = new CIEBackground();
+      this.cieBackground.init(this.layer, coordinateSystem, size, {});
+    } else {
+      this.cieBackground.init(this.layer, coordinateSystem, size, {});
+    }
+    this.cieBackground.render();
+
+    // Initialize and render axes component
+    if (!this.axes) {
+      this.axes = new Axes();
+    }
+    const existingAxesConfig = this.axes.getConfig();
+    const axesConfigToUse = Object.keys(existingAxesConfig).length > 0 
+      ? existingAxesConfig 
+      : {
+          show: this.config?.showAxes !== false,
+          showLines: true,
+          showLabels: this.config?.showLabels !== false,
+        };
+    this.axes.init(this.layer, coordinateSystem, axesConfigToUse);
+    this.axes.render();
+
+    // Initialize marker component (points will be rendered separately in renderLChColorPoints)
+    if (!this.marker) {
+      this.marker = new Marker();
+    }
+    const existingMarkerConfig = this.marker.getConfig();
+    this.marker.init(this.layer, coordinateSystem, existingMarkerConfig);
+  }
+  
+  /**
+   * Render LCh color points on the CIE chromaticity diagram
+   */
+  private renderLChColorPoints(points: ColorPoint[]): void {
+    if (!this.layer) return;
+
+    // Initialize marker if needed
+    if (!this.marker) {
+      this.marker = new Marker();
+    }
+
+    // Use the same coordinate system as the CIE background
+    const size = this.currentPreset?.size || { width: 400, height: 400 };
     const centerX = this.stage!.width() / 2;
     const centerY = this.stage!.height() / 2;
-    this.renderGeneric2D(centerX, centerY, size);
+    const maxX = 0.8;
+    const maxY = 0.9;
+    const scale = Math.min(size.width / maxX, size.height / maxY) * 0.7;
+    const offsetX = centerX - (maxX * scale) * 0.5;
+    const offsetY = centerY + (maxY * scale) * 0.5;
+
+    const coordinateSystem: CoordinateSystem = {
+      offsetX,
+      offsetY,
+      scale,
+      maxX,
+      maxY,
+    };
+    
+    this.marker.init(this.layer, coordinateSystem, {});
+
+    points.forEach((point) => {
+      if (point.values.length >= 3) {
+        const [l, c, h] = point.values; // LCh values: L* (0-100), C* (0-100+), h* (0-360)
+        
+        // Convert LCh to Lab, then to XYZ, then to xy chromaticity coordinates
+        const [l_lab, a, b] = lchToLab(l, c, h);
+        const [x, y, z] = labToXyz(l_lab, a, b);
+        const [x_chrom, y_chrom] = xyzToXy(x, y, z);
+        
+        // Render the marker at the xy coordinates
+        this.marker!.render(point, [x_chrom, y_chrom]);
+      }
+    });
   }
 
   private renderYCbCr2D(
