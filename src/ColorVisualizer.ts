@@ -152,6 +152,15 @@ export class ColorVisualizer {
   }
 
   /**
+   * Update HSV hue wheel configuration (2D only)
+   */
+  updateHSVHueWheel(config: Partial<import('./components/types').HSVHueWheelConfig>): void {
+    if (this.renderer && 'updateHSVHueWheel' in this.renderer) {
+      (this.renderer as any).updateHSVHueWheel(config);
+    }
+  }
+
+  /**
    * Destroy the visualizer and clean up resources
    */
   destroy(): void {

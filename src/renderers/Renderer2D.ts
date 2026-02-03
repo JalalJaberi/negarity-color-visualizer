@@ -8,11 +8,10 @@ import { VisualizerConfig, PresetConfig, ColorPoint } from '../types';
 import {
   rgbToXy,
   getRgbGamutVertices,
-  hsvToRgb,
   cmykToRgb,
   ycbcrToRgb,
 } from '../utils/colorConversion';
-import { CIEBackground, Axes, Marker, HSLHueWheel, CoordinateSystem } from '../components';
+import { CIEBackground, Axes, Marker, HSLHueWheel, HSVHueWheel, CoordinateSystem } from '../components';
 
 export class Renderer2D implements IRenderer {
   private stage: Konva.Stage | null = null;
@@ -22,6 +21,7 @@ export class Renderer2D implements IRenderer {
   private axes: Axes | null = null;
   private marker: Marker | null = null;
   private hslHueWheel: HSLHueWheel | null = null;
+  private hsvHueWheel: HSVHueWheel | null = null;
   private currentPreset: PresetConfig | null = null;
 
   init(container: HTMLElement, config: VisualizerConfig): void {
@@ -99,9 +99,11 @@ export class Renderer2D implements IRenderer {
 
     // Render color points if provided
     if (preset.points && preset.points.length > 0) {
-      // For HSL, use special rendering that positions markers on the hue wheel
+      // For HSL and HSV, use special rendering that positions markers on the hue wheel
       if (preset.colorSpace.name === 'HSL' && this.hslHueWheel) {
         this.renderHSLColorPoints(preset.points);
+      } else if (preset.colorSpace.name === 'HSV' && this.hsvHueWheel) {
+        this.renderHSVColorPoints(preset.points);
       } else {
         this.renderColorPoints(preset.points, centerX, centerY, size);
       }
@@ -598,37 +600,150 @@ export class Renderer2D implements IRenderer {
     }
   }
 
+  /**
+   * Update HSV hue wheel configuration and re-render
+   */
+  updateHSVHueWheel(config: Partial<import('../components/types').HSVHueWheelConfig>): void {
+    if (!this.hsvHueWheel || !this.layer) {
+      // If hue wheel doesn't exist or layer is not available, re-render the full preset
+      if (this.currentPreset) {
+        this.render(this.currentPreset);
+      }
+      return;
+    }
+    
+    // Update the config - this will merge with existing config
+    this.hsvHueWheel.updateConfig(config);
+    
+    // Re-render just the hue wheel if it's already initialized
+    try {
+      const geometry = this.hsvHueWheel.getGeometry();
+      if (geometry.radius > 0) {
+        // Re-render the hue wheel with updated config
+        // The render() method will use the updated config from updateConfig()
+        this.hsvHueWheel.render();
+        
+        // Also re-render the color points if they exist
+        if (this.currentPreset && this.currentPreset.points && this.currentPreset.points.length > 0) {
+          this.renderHSVColorPoints(this.currentPreset.points);
+        }
+        return;
+      }
+    } catch (e) {
+      // If there's an error, fall through to full re-render
+    }
+    
+    // Fallback: re-render the full preset
+    if (this.currentPreset) {
+      this.render(this.currentPreset);
+    }
+  }
+
   // Stub methods for other color spaces - basic implementations
   private renderHSV2D(
-    _centerX: number,
-    _centerY: number,
+    centerX: number,
+    centerY: number,
     size: { width: number; height: number; depth?: number },
-    _preset: PresetConfig
+    preset: PresetConfig
   ): void {
-    // Similar to HSL but using HSV - render hue wheel
     if (!this.layer) return;
-    const centerX = this.stage!.width() / 2;
-    const centerY = this.stage!.height() / 2;
+
+    // Create HSV hue wheel component
     const radius = Math.min(size.width || 400, size.height || 400) / 2.5;
     
-    // Create hue wheel using HSV
-    for (let i = 0; i < 360; i += 5) {
-      const [r, g, b] = hsvToRgb(i, 100, 100);
-      const color = `rgb(${r}, ${g}, ${b})`;
-      
-      const wedge = new Konva.Wedge({
-        x: centerX,
-        y: centerY,
-        radius: radius,
-        angle: 5,
-        rotation: i - 90,
-        fill: color,
-        stroke: '#333',
-        strokeWidth: 1,
-      });
-      
-      this.layer.add(wedge);
+    // Get config from preset
+    const wheelConfig = (preset.config?.custom?.hsvHueWheel as any) || {};
+    
+    // Initialize or reuse existing hue wheel component
+    if (!this.hsvHueWheel) {
+      this.hsvHueWheel = new HSVHueWheel();
     }
+    
+    // Get default value from first point if available, otherwise use config or default
+    let defaultValue = wheelConfig.value ?? 100;
+    if (preset.points && preset.points.length > 0 && preset.points[0].values.length >= 3) {
+      defaultValue = preset.points[0].values[2]; // V value from HSV
+    }
+    
+    // Get existing config from component if it's already initialized, otherwise use preset config
+    let mergedConfig: any = {};
+    try {
+      const existingConfig = this.hsvHueWheel.getConfig();
+      // Preserve existing config values, only override with preset config if explicitly provided
+      mergedConfig = {
+        saturation: wheelConfig.saturation !== undefined ? wheelConfig.saturation : (existingConfig.saturation ?? 100),
+        value: defaultValue,
+        innerRadius: wheelConfig.innerRadius !== undefined ? wheelConfig.innerRadius : (existingConfig.innerRadius ?? 0), // 0 = complete circle, no hole
+        showDividers: wheelConfig.showDividers !== undefined ? wheelConfig.showDividers : (existingConfig.showDividers ?? false), // No dividing lines
+        show: wheelConfig.show !== undefined ? wheelConfig.show : (existingConfig.show !== undefined ? existingConfig.show : true),
+        dividerStyle: wheelConfig.dividerStyle || existingConfig.dividerStyle,
+      };
+    } catch (e) {
+      // Component not initialized yet, use preset config with defaults
+      mergedConfig = {
+        saturation: wheelConfig.saturation ?? 100,
+        value: defaultValue,
+        innerRadius: wheelConfig.innerRadius ?? 0,
+        showDividers: wheelConfig.showDividers ?? false,
+        show: wheelConfig.show !== undefined ? wheelConfig.show : true,
+        dividerStyle: wheelConfig.dividerStyle,
+      };
+    }
+    
+    // Only pass the merged config, don't merge again in init() if already initialized
+    this.hsvHueWheel.init(
+      this.layer,
+      centerX,
+      centerY,
+      radius,
+      mergedConfig
+    );
+    
+    this.hsvHueWheel.render();
+  }
+
+  /**
+   * Render HSV color points on the hue wheel
+   */
+  private renderHSVColorPoints(points: ColorPoint[]): void {
+    if (!this.layer || !this.hsvHueWheel) return;
+
+    // Initialize marker if needed
+    if (!this.marker) {
+      this.marker = new Marker();
+    }
+
+    const geometry = this.hsvHueWheel.getGeometry();
+    
+    // Create a coordinate system for the marker
+    // Use the actual radius as the scale, with center at (0, 0) in normalized coords
+    // The coordinate system will translate normalized coords to screen coords
+    const coordinateSystem: CoordinateSystem = {
+      offsetX: geometry.centerX,
+      offsetY: geometry.centerY,
+      scale: geometry.radius,
+      maxX: 1, // Normalized: -1 to 1 for X (full circle width)
+      maxY: 1, // Normalized: -1 to 1 for Y (full circle height)
+    };
+    
+    this.marker.init(this.layer, coordinateSystem, {});
+
+    points.forEach((point) => {
+      if (point.values.length >= 3) {
+        const [h, s] = point.values; // HSV values: Hue (0-360), Saturation (0-100), Value (0-100)
+        
+        // Convert HSV to screen coordinates using the hue wheel's coordinate system
+        const [screenX, screenY] = this.hsvHueWheel!.hsvToScreenCoords(h, s);
+        
+        // Convert screen coords to normalized coords for marker
+        // Normalized coords are relative to center, with radius = 1
+        const normalizedX = (screenX - geometry.centerX) / geometry.radius;
+        const normalizedY = (geometry.centerY - screenY) / geometry.radius; // Invert Y for screen coords
+        
+        // Render the marker
+        this.marker!.render(point, [normalizedX, normalizedY]);
+      }
+    });
   }
 
   private renderCMYK2D(

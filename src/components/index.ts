@@ -6,6 +6,7 @@ export { CIEBackground } from './CIEBackground';
 export { Axes } from './Axes';
 export { Marker } from './Marker';
 export { HSLHueWheel } from './HSLHueWheel';
+export { HSVHueWheel } from './HSVHueWheel';
 export type {
   LineStyle,
   CIEBackgroundConfig,
@@ -13,4 +14,5 @@ export type {
   MarkerConfig,
   CoordinateSystem,
   HSLHueWheelConfig,
+  HSVHueWheelConfig,
 } from './types';

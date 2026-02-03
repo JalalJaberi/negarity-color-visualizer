@@ -77,3 +77,15 @@ export interface HSLHueWheelConfig {
   showDividers?: boolean; // Show lines between segments
   dividerStyle?: LineStyle;
 }
+
+/**
+ * HSV Hue Wheel configuration
+ */
+export interface HSVHueWheelConfig {
+  show?: boolean;
+  saturation?: number; // 0-100, default 100
+  value?: number; // 0-100, default 100
+  innerRadius?: number; // 0-1, relative to outer radius, 0 = complete circle
+  showDividers?: boolean; // Show lines between segments
+  dividerStyle?: LineStyle;
+}
