@@ -14,6 +14,7 @@ export class HSLHueWheel {
   private centerY: number = 0;
   private radius: number = 0;
   private initialized: boolean = false;
+  private shapes: Konva.Wedge[] = [];
 
   /**
    * Initialize the component
@@ -66,7 +67,16 @@ export class HSLHueWheel {
       throw new Error('HSLHueWheel not initialized. Call init() first.');
     }
 
+    // Clear existing shapes (only if they still exist in the layer)
+    this.shapes.forEach(shape => {
+      if (shape.getLayer()) {
+        shape.destroy();
+      }
+    });
+    this.shapes = [];
+
     if (this.config.show === false) {
+      this.layer.draw();
       return;
     }
 
@@ -97,7 +107,10 @@ export class HSLHueWheel {
       });
       
       this.layer.add(wedge);
+      this.shapes.push(wedge);
     }
+    
+    this.layer.draw();
   }
 
   /**

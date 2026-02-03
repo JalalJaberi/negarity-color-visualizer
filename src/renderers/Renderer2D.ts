@@ -251,18 +251,38 @@ export class Renderer2D implements IRenderer {
       defaultLightness = preset.points[0].values[2]; // L value from HSL
     }
     
+    // Get existing config from component if it's already initialized, otherwise use preset config
+    let mergedConfig: any = {};
+    try {
+      const existingConfig = this.hslHueWheel.getConfig();
+      mergedConfig = {
+        saturation: wheelConfig.saturation ?? existingConfig.saturation ?? 100,
+        lightness: defaultLightness,
+        innerRadius: wheelConfig.innerRadius ?? existingConfig.innerRadius ?? 0, // 0 = complete circle, no hole
+        showDividers: wheelConfig.showDividers ?? existingConfig.showDividers ?? false, // No dividing lines
+        show: wheelConfig.show !== undefined ? wheelConfig.show : (existingConfig.show !== undefined ? existingConfig.show : true),
+        dividerStyle: wheelConfig.dividerStyle || existingConfig.dividerStyle,
+        ...wheelConfig,
+      };
+    } catch (e) {
+      // Component not initialized yet, use preset config with defaults
+      mergedConfig = {
+        saturation: wheelConfig.saturation ?? 100,
+        lightness: defaultLightness,
+        innerRadius: wheelConfig.innerRadius ?? 0,
+        showDividers: wheelConfig.showDividers ?? false,
+        show: wheelConfig.show !== undefined ? wheelConfig.show : true,
+        dividerStyle: wheelConfig.dividerStyle,
+        ...wheelConfig,
+      };
+    }
+    
     this.hslHueWheel.init(
       this.layer,
       centerX,
       centerY,
       radius,
-      {
-        saturation: wheelConfig.saturation ?? 100,
-        lightness: defaultLightness,
-        innerRadius: wheelConfig.innerRadius ?? 0, // 0 = complete circle, no hole
-        showDividers: wheelConfig.showDividers ?? false, // No dividing lines
-        ...wheelConfig,
-      }
+      mergedConfig
     );
     
     this.hslHueWheel.render();
@@ -544,11 +564,35 @@ export class Renderer2D implements IRenderer {
    * Update HSL hue wheel configuration and re-render
    */
   updateHSLHueWheel(config: Partial<import('../components/types').HSLHueWheelConfig>): void {
-    if (!this.hslHueWheel) {
-      this.hslHueWheel = new HSLHueWheel();
+    if (!this.hslHueWheel || !this.layer) {
+      // If hue wheel doesn't exist or layer is not available, re-render the full preset
+      if (this.currentPreset) {
+        this.render(this.currentPreset);
+      }
+      return;
     }
+    
+    // Update the config
     this.hslHueWheel.updateConfig(config);
-    // Re-render the current preset
+    
+    // Re-render just the hue wheel if it's already initialized
+    try {
+      const geometry = this.hslHueWheel.getGeometry();
+      if (geometry.radius > 0) {
+        // Re-render the hue wheel with updated config
+        this.hslHueWheel.render();
+        
+        // Also re-render the color points if they exist
+        if (this.currentPreset && this.currentPreset.points && this.currentPreset.points.length > 0) {
+          this.renderHSLColorPoints(this.currentPreset.points);
+        }
+        return;
+      }
+    } catch (e) {
+      // If there's an error, fall through to full re-render
+    }
+    
+    // Fallback: re-render the full preset
     if (this.currentPreset) {
       this.render(this.currentPreset);
     }
