@@ -8,6 +8,9 @@ import { VisualizerConfig, PresetConfig, ColorPoint } from '../types';
 import {
   rgbToXy,
   getRgbGamutVertices,
+  hsvToRgb,
+  cmykToRgb,
+  ycbcrToRgb,
 } from '../utils/colorConversion';
 import { CIEBackground, Axes, Marker, CoordinateSystem } from '../components';
 
@@ -75,7 +78,19 @@ export class Renderer2D implements IRenderer {
         this.renderRGBCube2D(centerX, centerY, size);
       }
     } else if (preset.colorSpace.name === 'HSL') {
-      this.renderHSL2D(centerX, centerY, size);
+      this.renderHSL2D(centerX, centerY, size, preset);
+    } else if (preset.colorSpace.name === 'HSV') {
+      this.renderHSV2D(centerX, centerY, size, preset);
+    } else if (preset.colorSpace.name === 'CMYK') {
+      this.renderCMYK2D(centerX, centerY, size, preset);
+    } else if (preset.colorSpace.name === 'XYZ') {
+      this.renderXYZ2D(centerX, centerY, size, preset);
+    } else if (preset.colorSpace.name === 'LAB') {
+      this.renderLab2D(centerX, centerY, size, preset);
+    } else if (preset.colorSpace.name === 'LCh') {
+      this.renderLCh2D(centerX, centerY, size, preset);
+    } else if (preset.colorSpace.name === 'YCbCr') {
+      this.renderYCbCr2D(centerX, centerY, size, preset);
     } else {
       // Generic 2D visualization
       this.renderGeneric2D(centerX, centerY, size);
@@ -83,7 +98,7 @@ export class Renderer2D implements IRenderer {
 
     // Render color points if provided
     if (preset.points && preset.points.length > 0) {
-      // this.renderColorPoints(preset.points, centerX, centerY, size);
+      this.renderColorPoints(preset.points, centerX, centerY, size);
     }
 
     this.layer.draw();
@@ -208,7 +223,8 @@ export class Renderer2D implements IRenderer {
   private renderHSL2D(
     centerX: number,
     centerY: number,
-    size: { width: number; height: number; depth?: number }
+    size: { width: number; height: number; depth?: number },
+    _preset?: PresetConfig
   ): void {
     if (!this.layer) return;
 
@@ -500,6 +516,128 @@ export class Renderer2D implements IRenderer {
     // Re-render the current preset
     if (this.currentPreset) {
       this.render(this.currentPreset);
+    }
+  }
+
+  // Stub methods for other color spaces - basic implementations
+  private renderHSV2D(
+    _centerX: number,
+    _centerY: number,
+    size: { width: number; height: number; depth?: number },
+    _preset: PresetConfig
+  ): void {
+    // Similar to HSL but using HSV - render hue wheel
+    if (!this.layer) return;
+    const centerX = this.stage!.width() / 2;
+    const centerY = this.stage!.height() / 2;
+    const radius = Math.min(size.width || 400, size.height || 400) / 2.5;
+    
+    // Create hue wheel using HSV
+    for (let i = 0; i < 360; i += 5) {
+      const [r, g, b] = hsvToRgb(i, 100, 100);
+      const color = `rgb(${r}, ${g}, ${b})`;
+      
+      const wedge = new Konva.Wedge({
+        x: centerX,
+        y: centerY,
+        radius: radius,
+        angle: 5,
+        rotation: i - 90,
+        fill: color,
+        stroke: '#333',
+        strokeWidth: 1,
+      });
+      
+      this.layer.add(wedge);
+    }
+  }
+
+  private renderCMYK2D(
+    centerX: number,
+    centerY: number,
+    size: { width: number; height: number; depth?: number },
+    _preset: PresetConfig
+  ): void {
+    if (!this.layer) return;
+    // Render CMYK as C vs M plot
+    const width = size.width || 400;
+    const height = size.height || 400;
+    // Create a grid showing C vs M colors
+    for (let c = 0; c <= 100; c += 5) {
+      for (let m = 0; m <= 100; m += 5) {
+        const [r, g, b] = cmykToRgb(c, m, 0, 0);
+        const rect = new Konva.Rect({
+          x: centerX - width / 2 + (c / 100) * width,
+          y: centerY - height / 2 + (m / 100) * height,
+          width: width / 20,
+          height: height / 20,
+          fill: `rgb(${r}, ${g}, ${b})`,
+        });
+        this.layer.add(rect);
+      }
+    }
+  }
+
+  private renderXYZ2D(
+    centerX: number,
+    centerY: number,
+    size: { width: number; height: number; depth?: number },
+    preset: PresetConfig
+  ): void {
+    // Use existing RGB chromaticity rendering for XYZ
+    this.renderRgbChromaticity(centerX, centerY, size, preset);
+  }
+
+  private renderLab2D(
+    _centerX: number,
+    _centerY: number,
+    size: { width: number; height: number; depth?: number },
+    _preset: PresetConfig
+  ): void {
+    if (!this.layer) return;
+    // Render Lab a* vs b* plane - simplified version
+    const centerX = this.stage!.width() / 2;
+    const centerY = this.stage!.height() / 2;
+    this.renderGeneric2D(centerX, centerY, size);
+  }
+
+  private renderLCh2D(
+    _centerX: number,
+    _centerY: number,
+    size: { width: number; height: number; depth?: number },
+    _preset: PresetConfig
+  ): void {
+    if (!this.layer) return;
+    // Render LCh as polar: Chroma vs Hue - simplified version
+    const centerX = this.stage!.width() / 2;
+    const centerY = this.stage!.height() / 2;
+    this.renderGeneric2D(centerX, centerY, size);
+  }
+
+  private renderYCbCr2D(
+    centerX: number,
+    centerY: number,
+    size: { width: number; height: number; depth?: number },
+    _preset: PresetConfig
+  ): void {
+    if (!this.layer) return;
+    // Render YCbCr as Cb vs Cr plot
+    const width = size.width || 400;
+    const height = size.height || 400;
+    // Create a grid showing Cb vs Cr colors
+    const fixedY = 128; // Default luma
+    for (let cb = 16; cb <= 240; cb += 10) {
+      for (let cr = 16; cr <= 240; cr += 10) {
+        const [r, g, b] = ycbcrToRgb(fixedY, cb, cr);
+        const rect = new Konva.Rect({
+          x: centerX - width / 2 + ((cb - 16) / 224) * width,
+          y: centerY - height / 2 + ((cr - 16) / 224) * height,
+          width: width / 22,
+          height: height / 22,
+          fill: `rgb(${r}, ${g}, ${b})`,
+        });
+        this.layer.add(rect);
+      }
     }
   }
 }

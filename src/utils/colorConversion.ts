@@ -249,3 +249,299 @@ export function xyToRgb(x: number, y: number, Y: number = 1.0): [number, number,
     normalize(bGamma),
   ];
 }
+
+/**
+ * Convert RGB to HSL
+ */
+export function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
+  r = r / 255;
+  g = g / 255;
+  b = b / 255;
+
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h = 0;
+  let s = 0;
+  const l = (max + min) / 2;
+
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+    switch (max) {
+      case r:
+        h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+        break;
+      case g:
+        h = ((b - r) / d + 2) / 6;
+        break;
+      case b:
+        h = ((r - g) / d + 4) / 6;
+        break;
+    }
+  }
+
+  return [h * 360, s * 100, l * 100];
+}
+
+/**
+ * Convert HSL to RGB
+ */
+export function hslToRgb(h: number, s: number, l: number): [number, number, number] {
+  h = h / 360;
+  s = s / 100;
+  l = l / 100;
+
+  let r, g, b;
+
+  if (s === 0) {
+    r = g = b = l;
+  } else {
+    const hue2rgb = (p: number, q: number, t: number) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1 / 6) return p + (q - p) * 6 * t;
+      if (t < 1 / 2) return q;
+      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+      return p;
+    };
+
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+
+    r = hue2rgb(p, q, h + 1 / 3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1 / 3);
+  }
+
+  return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+}
+
+/**
+ * Convert RGB to HSV
+ */
+export function rgbToHsv(r: number, g: number, b: number): [number, number, number] {
+  r = r / 255;
+  g = g / 255;
+  b = b / 255;
+
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const d = max - min;
+  let h = 0;
+  const s = max === 0 ? 0 : d / max;
+  const v = max;
+
+  if (max !== min) {
+    switch (max) {
+      case r:
+        h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+        break;
+      case g:
+        h = ((b - r) / d + 2) / 6;
+        break;
+      case b:
+        h = ((r - g) / d + 4) / 6;
+        break;
+    }
+  }
+
+  return [h * 360, s * 100, v * 100];
+}
+
+/**
+ * Convert HSV to RGB
+ */
+export function hsvToRgb(h: number, s: number, v: number): [number, number, number] {
+  h = h / 360;
+  s = s / 100;
+  v = v / 100;
+
+  const i = Math.floor(h * 6);
+  const f = h * 6 - i;
+  const p = v * (1 - s);
+  const q = v * (1 - f * s);
+  const t = v * (1 - (1 - f) * s);
+
+  let r, g, b;
+
+  switch (i % 6) {
+    case 0:
+      r = v;
+      g = t;
+      b = p;
+      break;
+    case 1:
+      r = q;
+      g = v;
+      b = p;
+      break;
+    case 2:
+      r = p;
+      g = v;
+      b = t;
+      break;
+    case 3:
+      r = p;
+      g = q;
+      b = v;
+      break;
+    case 4:
+      r = t;
+      g = p;
+      b = v;
+      break;
+    case 5:
+      r = v;
+      g = p;
+      b = q;
+      break;
+    default:
+      r = g = b = 0;
+  }
+
+  return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+}
+
+/**
+ * Convert RGB to CMYK
+ */
+export function rgbToCmyk(r: number, g: number, b: number): [number, number, number, number] {
+  r = r / 255;
+  g = g / 255;
+  b = b / 255;
+
+  const k = 1 - Math.max(r, g, b);
+  const c = k === 1 ? 0 : (1 - r - k) / (1 - k);
+  const m = k === 1 ? 0 : (1 - g - k) / (1 - k);
+  const y = k === 1 ? 0 : (1 - b - k) / (1 - k);
+
+  return [c * 100, m * 100, y * 100, k * 100];
+}
+
+/**
+ * Convert CMYK to RGB
+ */
+export function cmykToRgb(c: number, m: number, y: number, k: number): [number, number, number] {
+  c = c / 100;
+  m = m / 100;
+  y = y / 100;
+  k = k / 100;
+
+  const r = 255 * (1 - c) * (1 - k);
+  const g = 255 * (1 - m) * (1 - k);
+  const b = 255 * (1 - y) * (1 - k);
+
+  return [Math.round(r), Math.round(g), Math.round(b)];
+}
+
+/**
+ * Convert XYZ to Lab (D65 illuminant)
+ */
+export function xyzToLab(x: number, y: number, z: number): [number, number, number] {
+  // D65 white point
+  const xn = 95.047;
+  const yn = 100.0;
+  const zn = 108.883;
+
+  x = x / xn;
+  y = y / yn;
+  z = z / zn;
+
+  const f = (t: number): number => {
+    if (t > 0.008856) {
+      return Math.pow(t, 1 / 3);
+    } else {
+      return (7.787 * t + 16 / 116);
+    }
+  };
+
+  const fx = f(x);
+  const fy = f(y);
+  const fz = f(z);
+
+  const l = 116 * fy - 16;
+  const a = 500 * (fx - fy);
+  const b = 200 * (fy - fz);
+
+  return [l, a, b];
+}
+
+/**
+ * Convert Lab to XYZ (D65 illuminant)
+ */
+export function labToXyz(l: number, a: number, b: number): [number, number, number] {
+  // D65 white point
+  const xn = 95.047;
+  const yn = 100.0;
+  const zn = 108.883;
+
+  const fy = (l + 16) / 116;
+  const fx = a / 500 + fy;
+  const fz = fy - b / 200;
+
+  const f = (t: number): number => {
+    const t3 = Math.pow(t, 3);
+    if (t3 > 0.008856) {
+      return t3;
+    } else {
+      return (t - 16 / 116) / 7.787;
+    }
+  };
+
+  const x = f(fx) * xn;
+  const y = f(fy) * yn;
+  const z = f(fz) * zn;
+
+  return [x, y, z];
+}
+
+/**
+ * Convert Lab to LCh
+ */
+export function labToLch(l: number, a: number, b: number): [number, number, number] {
+  const c = Math.sqrt(a * a + b * b);
+  let h = (Math.atan2(b, a) * 180) / Math.PI;
+  if (h < 0) h += 360;
+  return [l, c, h];
+}
+
+/**
+ * Convert LCh to Lab
+ */
+export function lchToLab(l: number, c: number, h: number): [number, number, number] {
+  const hRad = (h * Math.PI) / 180;
+  const a = c * Math.cos(hRad);
+  const b = c * Math.sin(hRad);
+  return [l, a, b];
+}
+
+/**
+ * Convert RGB to YCbCr (ITU-R BT.601)
+ */
+export function rgbToYcbcr(r: number, g: number, b: number): [number, number, number] {
+  const y = 16 + (65.481 * r + 128.553 * g + 24.966 * b) / 255;
+  const cb = 128 + (-37.797 * r - 74.203 * g + 112.0 * b) / 255;
+  const cr = 128 + (112.0 * r - 93.786 * g - 18.214 * b) / 255;
+
+  return [Math.round(y), Math.round(cb), Math.round(cr)];
+}
+
+/**
+ * Convert YCbCr to RGB (ITU-R BT.601)
+ */
+export function ycbcrToRgb(y: number, cb: number, cr: number): [number, number, number] {
+  y = y - 16;
+  cb = cb - 128;
+  cr = cr - 128;
+
+  const r = 255 * (y / 255 + 1.402 * cr / 255);
+  const g = 255 * (y / 255 - 0.344136 * cb / 255 - 0.714136 * cr / 255);
+  const b = 255 * (y / 255 + 1.772 * cb / 255);
+
+  return [
+    Math.max(0, Math.min(255, Math.round(r))),
+    Math.max(0, Math.min(255, Math.round(g))),
+    Math.max(0, Math.min(255, Math.round(b))),
+  ];
+}

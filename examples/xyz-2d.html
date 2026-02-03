@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XYZ 2D Visualization - Negarity Color Visualizer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .example-section {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .visualizer-container {
+            width: 100%;
+            height: 600px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .controls {
+            background: #f8f8f8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .controls h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 8px;
+        }
+        .control-group {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .control-group label {
+            display: inline-block;
+            min-width: 120px;
+            font-weight: 500;
+            color: #555;
+        }
+        .control-group input[type="number"] {
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 80px;
+        }
+        .controls button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #007cba;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .controls button:hover {
+            background: #005a87;
+        }
+        .info {
+            background: #e7f3ff;
+            border-left: 4px solid #007cba;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .info p {
+            margin: 5px 0;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>XYZ 2D Visualization</h1>
+        <p class="subtitle">CIE XYZ Color Space - Chromaticity Diagram</p>
+        
+        <div class="info">
+            <p><strong>What is this?</strong></p>
+            <p>This visualization shows the CIE XYZ color space using the xy chromaticity diagram. XYZ is a device-independent color space used in color science. The visualization shows the visible spectrum and RGB gamut.</p>
+        </div>
+
+        <div class="example-section">
+            <div id="xyz-visualizer" class="visualizer-container"></div>
+            
+            <div class="controls">
+                <h3>Color Point Controls</h3>
+                <div class="control-group">
+                    <label>X:</label>
+                    <input type="number" id="x-value" min="0" max="100" step="0.1" value="24.0">
+                    <label>Y:</label>
+                    <input type="number" id="y-value" min="0" max="100" step="0.1" value="18.0">
+                    <label>Z:</label>
+                    <input type="number" id="z-value" min="0" max="100" step="0.1" value="3.0">
+                    <button onclick="updateFromInputs()">Update Point</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/examples/xyz-2d-demo.ts"></script>
+    <script>
+        function updateFromInputs() {
+            const x = parseFloat(document.getElementById('x-value').value) || 0;
+            const y = parseFloat(document.getElementById('y-value').value) || 0;
+            const z = parseFloat(document.getElementById('z-value').value) || 0;
+            
+            if (window.updatePoint) {
+                window.updatePoint(x, y, z, `XYZ(${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)})`);
+            }
+        }
+    </script>
+</body>
+</html>

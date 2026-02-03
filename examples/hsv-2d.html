@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSV 2D Visualization - Negarity Color Visualizer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .example-section {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .visualizer-container {
+            width: 100%;
+            height: 600px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .controls {
+            background: #f8f8f8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .controls h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 8px;
+        }
+        .control-group {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .control-group label {
+            display: inline-block;
+            min-width: 120px;
+            font-weight: 500;
+            color: #555;
+        }
+        .control-group input[type="number"] {
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 80px;
+        }
+        .controls button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #007cba;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .controls button:hover {
+            background: #005a87;
+        }
+        .preset-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .preset-buttons button {
+            background: #6c757d;
+        }
+        .preset-buttons button:hover {
+            background: #5a6268;
+        }
+        .info {
+            background: #e7f3ff;
+            border-left: 4px solid #007cba;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .info p {
+            margin: 5px 0;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>HSV 2D Visualization</h1>
+        <p class="subtitle">Hue vs Saturation Color Space</p>
+        
+        <div class="info">
+            <p><strong>What is this?</strong></p>
+            <p>This visualization shows the HSV color space as a hue wheel. Hue represents the color (0-360°), Saturation represents color intensity (0-100%), and Value represents brightness (0-100%).</p>
+        </div>
+
+        <div class="example-section">
+            <div id="hsv-visualizer" class="visualizer-container"></div>
+            
+            <div class="controls">
+                <h3>Color Point Controls</h3>
+                <div class="control-group">
+                    <label>Hue (H):</label>
+                    <input type="number" id="h-value" min="0" max="360" value="0">
+                    <label>Saturation (S):</label>
+                    <input type="number" id="s-value" min="0" max="100" value="100">
+                    <label>Value (V):</label>
+                    <input type="number" id="v-value" min="0" max="100" value="100">
+                    <button onclick="updateFromInputs()">Update Point</button>
+                </div>
+                
+                <h3>Preset Colors</h3>
+                <div class="preset-buttons">
+                    <button onclick="setColor(0, 100, 100, 'Red')">Red</button>
+                    <button onclick="setColor(60, 100, 100, 'Yellow')">Yellow</button>
+                    <button onclick="setColor(120, 100, 100, 'Green')">Green</button>
+                    <button onclick="setColor(180, 100, 100, 'Cyan')">Cyan</button>
+                    <button onclick="setColor(240, 100, 100, 'Blue')">Blue</button>
+                    <button onclick="setColor(300, 100, 100, 'Magenta')">Magenta</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/examples/hsv-2d-demo.ts"></script>
+    <script>
+        function updateFromInputs() {
+            const h = parseInt(document.getElementById('h-value').value) || 0;
+            const s = parseInt(document.getElementById('s-value').value) || 0;
+            const v = parseInt(document.getElementById('v-value').value) || 0;
+            
+            if (window.updatePoint) {
+                window.updatePoint(h, s, v, `HSV(${h}, ${s}%, ${v}%)`);
+            }
+        }
+        
+        function setColor(h, s, v, label) {
+            document.getElementById('h-value').value = h;
+            document.getElementById('s-value').value = s;
+            document.getElementById('v-value').value = v;
+            
+            if (window.updatePoint) {
+                window.updatePoint(h, s, v, label);
+            }
+        }
+    </script>
+</body>
+</html>

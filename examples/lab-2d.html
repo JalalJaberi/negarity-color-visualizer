@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 2D Visualization - Negarity Color Visualizer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .example-section {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .visualizer-container {
+            width: 100%;
+            height: 600px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .controls {
+            background: #f8f8f8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .controls h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 8px;
+        }
+        .control-group {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .control-group label {
+            display: inline-block;
+            min-width: 120px;
+            font-weight: 500;
+            color: #555;
+        }
+        .control-group input[type="number"] {
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 80px;
+        }
+        .controls button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #007cba;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .controls button:hover {
+            background: #005a87;
+        }
+        .info {
+            background: #e7f3ff;
+            border-left: 4px solid #007cba;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .info p {
+            margin: 5px 0;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Lab 2D Visualization</h1>
+        <p class="subtitle">CIE L*a*b* Color Space - a* vs b* Plane</p>
+        
+        <div class="info">
+            <p><strong>What is this?</strong></p>
+            <p>This visualization shows the CIE L*a*b* color space. L* represents lightness (0-100), a* represents green-red axis (-128 to 127), and b* represents blue-yellow axis (-128 to 127). This is a perceptually uniform color space.</p>
+        </div>
+
+        <div class="example-section">
+            <div id="lab-visualizer" class="visualizer-container"></div>
+            
+            <div class="controls">
+                <h3>Color Point Controls</h3>
+                <div class="control-group">
+                    <label>L* (Lightness):</label>
+                    <input type="number" id="l-value" min="0" max="100" value="50">
+                    <label>a* (Green-Red):</label>
+                    <input type="number" id="a-value" min="-128" max="127" value="0">
+                    <label>b* (Blue-Yellow):</label>
+                    <input type="number" id="b-value" min="-128" max="127" value="0">
+                    <button onclick="updateFromInputs()">Update Point</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/examples/lab-2d-demo.ts"></script>
+    <script>
+        function updateFromInputs() {
+            const l = parseFloat(document.getElementById('l-value').value) || 0;
+            const a = parseFloat(document.getElementById('a-value').value) || 0;
+            const b = parseFloat(document.getElementById('b-value').value) || 0;
+            
+            if (window.updatePoint) {
+                window.updatePoint(l, a, b, `Lab(${l.toFixed(1)}, ${a.toFixed(1)}, ${b.toFixed(1)})`);
+            }
+        }
+    </script>
+</body>
+</html>
