@@ -50,7 +50,8 @@ export class HSLHueWheel {
       this.initialized = true;
     } else {
       // Already initialized - preserve existing config and merge with new config
-      if (Object.keys(config).length > 0) {
+      // Only update if config is provided and has keys
+      if (config && typeof config === 'object' && Object.keys(config).length > 0) {
         this.config = {
           ...this.config,
           ...config,

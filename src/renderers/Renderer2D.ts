@@ -255,14 +255,14 @@ export class Renderer2D implements IRenderer {
     let mergedConfig: any = {};
     try {
       const existingConfig = this.hslHueWheel.getConfig();
+      // Preserve existing config values, only override with preset config if explicitly provided
       mergedConfig = {
-        saturation: wheelConfig.saturation ?? existingConfig.saturation ?? 100,
+        saturation: wheelConfig.saturation !== undefined ? wheelConfig.saturation : (existingConfig.saturation ?? 100),
         lightness: defaultLightness,
-        innerRadius: wheelConfig.innerRadius ?? existingConfig.innerRadius ?? 0, // 0 = complete circle, no hole
-        showDividers: wheelConfig.showDividers ?? existingConfig.showDividers ?? false, // No dividing lines
+        innerRadius: wheelConfig.innerRadius !== undefined ? wheelConfig.innerRadius : (existingConfig.innerRadius ?? 0), // 0 = complete circle, no hole
+        showDividers: wheelConfig.showDividers !== undefined ? wheelConfig.showDividers : (existingConfig.showDividers ?? false), // No dividing lines
         show: wheelConfig.show !== undefined ? wheelConfig.show : (existingConfig.show !== undefined ? existingConfig.show : true),
         dividerStyle: wheelConfig.dividerStyle || existingConfig.dividerStyle,
-        ...wheelConfig,
       };
     } catch (e) {
       // Component not initialized yet, use preset config with defaults
@@ -273,7 +273,6 @@ export class Renderer2D implements IRenderer {
         showDividers: wheelConfig.showDividers ?? false,
         show: wheelConfig.show !== undefined ? wheelConfig.show : true,
         dividerStyle: wheelConfig.dividerStyle,
-        ...wheelConfig,
       };
     }
     
@@ -572,7 +571,7 @@ export class Renderer2D implements IRenderer {
       return;
     }
     
-    // Update the config
+    // Update the config - this will merge with existing config
     this.hslHueWheel.updateConfig(config);
     
     // Re-render just the hue wheel if it's already initialized
@@ -580,6 +579,7 @@ export class Renderer2D implements IRenderer {
       const geometry = this.hslHueWheel.getGeometry();
       if (geometry.radius > 0) {
         // Re-render the hue wheel with updated config
+        // The render() method will use the updated config from updateConfig()
         this.hslHueWheel.render();
         
         // Also re-render the color points if they exist
