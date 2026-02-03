@@ -573,6 +573,22 @@ export function labToXyz(l: number, a: number, b: number): [number, number, numb
 }
 
 /**
+ * Convert RGB to Lab (via XYZ)
+ */
+export function rgbToLab(r: number, g: number, b: number): [number, number, number] {
+  const [x, y, z] = rgbToXyz(r, g, b);
+  return xyzToLab(x, y, z);
+}
+
+/**
+ * Convert Lab to RGB (via XYZ)
+ */
+export function labToRgb(l: number, a: number, b: number): [number, number, number] {
+  const [x, y, z] = labToXyz(l, a, b);
+  return xyzToRgb(x, y, z);
+}
+
+/**
  * Convert Lab to LCh
  */
 export function labToLch(l: number, a: number, b: number): [number, number, number] {

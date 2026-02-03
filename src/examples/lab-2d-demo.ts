@@ -5,6 +5,7 @@
 
 import { ColorVisualizer, LAB_COLOR_SPACE } from '../index';
 import { PresetConfig } from '../types';
+import { labToRgb, rgbToLab, rgbToXyz, xyzToLab } from '../utils/colorConversion';
 
 const container = document.getElementById('lab-visualizer');
 if (!container) {
@@ -49,8 +50,9 @@ const visualizer = new ColorVisualizer(container, {
 visualizer.render(labPreset);
 
 (window as any).updatePoint = (l: number, a: number, b: number, label?: string) => {
-  // Convert Lab to RGB for display (simplified)
-  const hexColor = '#808080'; // Placeholder
+  // Convert Lab to RGB for display
+  const [r, g, b_rgb] = labToRgb(l, a, b);
+  const hexColor = `#${Math.round(r).toString(16).padStart(2, '0')}${Math.round(g).toString(16).padStart(2, '0')}${Math.round(b_rgb).toString(16).padStart(2, '0')}`;
 
   const newPreset: PresetConfig = {
     ...labPreset,
@@ -58,7 +60,7 @@ visualizer.render(labPreset);
       {
         values: [l, a, b],
         color: hexColor,
-        label: label || `Lab(${l}, ${a}, ${b})`,
+        label: label || `Lab(${l.toFixed(1)}, ${a.toFixed(1)}, ${b.toFixed(1)})`,
       },
     ],
   };
@@ -69,3 +71,35 @@ visualizer.render(labPreset);
 window.addEventListener('resize', () => {
   visualizer.handleResize();
 });
+
+// Expose update functions for CIE background, axes, and marker
+(window as any).updateCIEBackgroundFn = (config?: any) => {
+  if (config) {
+    visualizer.updateCIEBackground(config);
+  }
+};
+
+(window as any).updateAxesFn = (config?: any) => {
+  if (config) {
+    visualizer.updateAxes(config);
+  }
+};
+
+(window as any).updateMarkerFn = (config?: any) => {
+  if (config) {
+    visualizer.updateMarker(config);
+  }
+};
+
+// Expose rgbToLab for HTML use
+(window as any).rgbToLab = (r: number, g: number, b: number) => {
+  return rgbToLab(r, g, b);
+};
+
+(window as any).rgbToXyz = (r: number, g: number, b: number) => {
+  return rgbToXyz(r, g, b);
+};
+
+(window as any).xyzToLab = (x: number, y: number, z: number) => {
+  return xyzToLab(x, y, z);
+};

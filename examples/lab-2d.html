@@ -100,16 +100,50 @@
             margin: 5px 0;
             color: #555;
         }
+        .preset-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .preset-buttons button {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+        .range-value {
+            display: inline-block;
+            min-width: 40px;
+            text-align: center;
+            font-weight: 500;
+            color: #007cba;
+        }
+        .control-section {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+        }
+        .control-section h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #444;
+            font-size: 16px;
+        }
+        .sub-control-group {
+            margin-left: 20px;
+            padding-left: 15px;
+            border-left: 2px solid #e0e0e0;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Lab 2D Visualization</h1>
-        <p class="subtitle">CIE L*a*b* Color Space - a* vs b* Plane</p>
+        <p class="subtitle">CIE L*a*b* Color Space - Chromaticity Diagram</p>
         
         <div class="info">
             <p><strong>What is this?</strong></p>
-            <p>This visualization shows the CIE L*a*b* color space. L* represents lightness (0-100), a* represents green-red axis (-128 to 127), and b* represents blue-yellow axis (-128 to 127). This is a perceptually uniform color space.</p>
+            <p>This visualization shows the CIE L*a*b* color space using the xy chromaticity diagram. Lab colors are converted to XYZ, then to xy coordinates for display. This shows where Lab colors fall within the visible color spectrum.</p>
         </div>
 
         <div class="example-section">
@@ -126,6 +160,79 @@
                     <input type="number" id="b-value" min="-128" max="127" value="0">
                     <button onclick="updateFromInputs()">Update Point</button>
                 </div>
+
+                <h3>Preset Colors</h3>
+                <div class="preset-buttons">
+                    <button onclick="setColorFromRgb(128, 128, 128, 'Neutral Gray')">Neutral Gray</button>
+                    <button onclick="setColorFromRgb(255, 0, 0, 'Red')">Red</button>
+                    <button onclick="setColorFromRgb(0, 255, 0, 'Green')">Green</button>
+                    <button onclick="setColorFromRgb(255, 255, 0, 'Yellow')">Yellow</button>
+                    <button onclick="setColorFromRgb(0, 0, 255, 'Blue')">Blue</button>
+                    <button onclick="setColorFromRgb(255, 255, 255, 'White')">White</button>
+                    <button onclick="setColorFromRgb(0, 0, 0, 'Black')">Black</button>
+                </div>
+
+                <!-- CIE Background Controls -->
+                <div class="control-section">
+                    <h4>CIE Background Settings</h4>
+                    <div class="control-group">
+                        <label>Show Background:</label>
+                        <input type="checkbox" id="cie-bg-show" checked onchange="updateCIEBackground()">
+                    </div>
+                    <div class="control-group">
+                        <label>Brightness:</label>
+                        <input type="range" id="cie-bg-brightness" min="0" max="1" step="0.01" value="1.0" oninput="updateCIEBackground()">
+                        <span class="range-value" id="cie-bg-brightness-value">1.0</span>
+                    </div>
+                    <div class="control-group">
+                        <label>Opacity:</label>
+                        <input type="range" id="cie-bg-opacity" min="0" max="1" step="0.01" value="0.85" oninput="updateCIEBackground()">
+                        <span class="range-value" id="cie-bg-opacity-value">0.85</span>
+                    </div>
+                </div>
+
+                <!-- Axes Controls -->
+                <div class="control-section">
+                    <h4>Axes Settings</h4>
+                    <div class="control-group">
+                        <label>Show Axes:</label>
+                        <input type="checkbox" id="axes-show" checked onchange="updateAxes()">
+                    </div>
+                    <div class="control-group">
+                        <label>Show Lines:</label>
+                        <input type="checkbox" id="axes-show-lines" checked onchange="updateAxes()">
+                    </div>
+                    <div class="control-group">
+                        <label>Show Labels:</label>
+                        <input type="checkbox" id="axes-show-labels" checked onchange="updateAxes()">
+                    </div>
+                </div>
+
+                <!-- Marker Controls -->
+                <div class="control-section">
+                    <h4>Marker Settings</h4>
+                    <div class="control-group">
+                        <label>Show Marker:</label>
+                        <input type="checkbox" id="marker-show" checked onchange="updateMarker()">
+                    </div>
+                    <div class="control-group">
+                        <label>Show Label:</label>
+                        <input type="checkbox" id="marker-show-label" checked onchange="updateMarker()">
+                    </div>
+                    <div class="control-group">
+                        <label>Shape:</label>
+                        <select id="marker-shape" onchange="updateMarker()">
+                            <option value="circle">Circle</option>
+                            <option value="square">Square</option>
+                            <option value="triangle">Triangle</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>Size:</label>
+                        <input type="range" id="marker-size" min="5" max="30" step="1" value="10" oninput="updateMarker()">
+                        <span class="range-value" id="marker-size-value">10</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -139,6 +246,106 @@
             
             if (window.updatePoint) {
                 window.updatePoint(l, a, b, `Lab(${l.toFixed(1)}, ${a.toFixed(1)}, ${b.toFixed(1)})`);
+            }
+        }
+
+        function setColor(l, a, b, label) {
+            document.getElementById('l-value').value = l;
+            document.getElementById('a-value').value = a;
+            document.getElementById('b-value').value = b;
+            
+            if (window.updatePoint) {
+                window.updatePoint(l, a, b, label);
+            }
+        }
+
+        // Convert RGB to Lab and set the color
+        function setColorFromRgb(r, g, b, label) {
+            // Use the rgbToLab function from the module
+            // We'll need to expose it or calculate it here
+            // For now, let's use approximate values based on sRGB primaries
+            // Pure sRGB Red (255,0,0) ≈ Lab(53.2, 80.1, 67.2)
+            // Pure sRGB Green (0,255,0) ≈ Lab(87.7, -86.2, 83.2)
+            // Pure sRGB Blue (0,0,255) ≈ Lab(32.3, 79.2, -107.9)
+            // Pure sRGB Yellow (255,255,0) ≈ Lab(97.1, -21.6, 94.5)
+            // White (255,255,255) ≈ Lab(100, 0, 0)
+            // Black (0,0,0) ≈ Lab(0, 0, 0)
+            // Gray (128,128,128) ≈ Lab(53.4, 0, 0)
+            
+            const rgbToLabMap = {
+                '255,0,0': [53.2, 80.1, 67.2], // Red
+                '0,255,0': [87.7, -86.2, 83.2], // Green
+                '0,0,255': [32.3, 79.2, -107.9], // Blue
+                '255,255,0': [97.1, -21.6, 94.5], // Yellow
+                '255,255,255': [100, 0, 0], // White
+                '0,0,0': [0, 0, 0], // Black
+                '128,128,128': [53.4, 0, 0], // Neutral Gray
+            };
+            
+            const key = `${r},${g},${b}`;
+            if (rgbToLabMap[key]) {
+                const [l, a, b_lab] = rgbToLabMap[key];
+                setColor(l, a, b_lab, label);
+            } else {
+                // Fallback: try to convert using the module if available
+                if (window.rgbToLab) {
+                    const [l, a, b_lab] = window.rgbToLab(r, g, b);
+                    setColor(l, a, b_lab, label);
+                } else {
+                    // Approximate conversion
+                    const [x, y, z] = window.rgbToXyz ? window.rgbToXyz(r, g, b) : [0, 0, 0];
+                    const [l, a, b_lab] = window.xyzToLab ? window.xyzToLab(x, y, z) : [50, 0, 0];
+                    setColor(l, a, b_lab, label);
+                }
+            }
+        }
+
+        function updateCIEBackground() {
+            const show = document.getElementById('cie-bg-show').checked;
+            const brightness = parseFloat(document.getElementById('cie-bg-brightness').value);
+            const opacity = parseFloat(document.getElementById('cie-bg-opacity').value);
+            
+            document.getElementById('cie-bg-brightness-value').textContent = brightness.toFixed(2);
+            document.getElementById('cie-bg-opacity-value').textContent = opacity.toFixed(2);
+            
+            if (window.updateCIEBackgroundFn) {
+                window.updateCIEBackgroundFn({
+                    show: show,
+                    brightness: brightness,
+                    opacity: opacity
+                });
+            }
+        }
+
+        function updateAxes() {
+            const show = document.getElementById('axes-show').checked;
+            const showLines = document.getElementById('axes-show-lines').checked;
+            const showLabels = document.getElementById('axes-show-labels').checked;
+            
+            if (window.updateAxesFn) {
+                window.updateAxesFn({
+                    show: show,
+                    showLines: showLines,
+                    showLabels: showLabels
+                });
+            }
+        }
+
+        function updateMarker() {
+            const show = document.getElementById('marker-show').checked;
+            const showLabel = document.getElementById('marker-show-label').checked;
+            const shape = document.getElementById('marker-shape').value;
+            const size = parseInt(document.getElementById('marker-size').value);
+            
+            document.getElementById('marker-size-value').textContent = size;
+            
+            if (window.updateMarkerFn) {
+                window.updateMarkerFn({
+                    show: show,
+                    showLabel: showLabel,
+                    shape: shape,
+                    size: size
+                });
             }
         }
     </script>
