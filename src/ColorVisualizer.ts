@@ -143,6 +143,15 @@ export class ColorVisualizer {
   }
 
   /**
+   * Update HSL hue wheel configuration (2D only)
+   */
+  updateHSLHueWheel(config: Partial<import('./components/types').HSLHueWheelConfig>): void {
+    if (this.renderer && 'updateHSLHueWheel' in this.renderer) {
+      (this.renderer as any).updateHSLHueWheel(config);
+    }
+  }
+
+  /**
    * Destroy the visualizer and clean up resources
    */
   destroy(): void {

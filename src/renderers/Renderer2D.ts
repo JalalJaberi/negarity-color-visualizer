@@ -12,7 +12,7 @@ import {
   cmykToRgb,
   ycbcrToRgb,
 } from '../utils/colorConversion';
-import { CIEBackground, Axes, Marker, CoordinateSystem } from '../components';
+import { CIEBackground, Axes, Marker, HSLHueWheel, CoordinateSystem } from '../components';
 
 export class Renderer2D implements IRenderer {
   private stage: Konva.Stage | null = null;
@@ -21,6 +21,7 @@ export class Renderer2D implements IRenderer {
   private cieBackground: CIEBackground | null = null;
   private axes: Axes | null = null;
   private marker: Marker | null = null;
+  private hslHueWheel: HSLHueWheel | null = null;
   private currentPreset: PresetConfig | null = null;
 
   init(container: HTMLElement, config: VisualizerConfig): void {
@@ -98,7 +99,12 @@ export class Renderer2D implements IRenderer {
 
     // Render color points if provided
     if (preset.points && preset.points.length > 0) {
-      this.renderColorPoints(preset.points, centerX, centerY, size);
+      // For HSL, use special rendering that positions markers on the hue wheel
+      if (preset.colorSpace.name === 'HSL' && this.hslHueWheel) {
+        this.renderHSLColorPoints(preset.points);
+      } else {
+        this.renderColorPoints(preset.points, centerX, centerY, size);
+      }
     }
 
     this.layer.draw();
@@ -224,46 +230,86 @@ export class Renderer2D implements IRenderer {
     centerX: number,
     centerY: number,
     size: { width: number; height: number; depth?: number },
-    _preset?: PresetConfig
+    preset: PresetConfig
   ): void {
     if (!this.layer) return;
 
-    // Create a circular hue wheel for HSL
-    const radius = Math.min(size.width, size.height) / 2.5;
+    // Create HSL hue wheel component
+    const radius = Math.min(size.width || 400, size.height || 400) / 2.5;
     
-    // Create hue wheel using multiple segments
-    for (let i = 0; i < 360; i += 5) {
-      // Convert HSL to RGB for visualization
-      const h = i / 360;
-      const s = 1;
-      const l = 0.5;
-      const rgb = this.hslToRgb(h, s, l);
-      const color = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
-      
-      const wedge = new Konva.Wedge({
-        x: centerX,
-        y: centerY,
-        radius: radius,
-        angle: 5,
-        rotation: i - 90, // Start from top
-        fill: color,
-        stroke: '#333',
-        strokeWidth: 1,
-      });
-      
-      this.layer.add(wedge);
+    // Get config from preset
+    const wheelConfig = (preset.config?.custom?.hslHueWheel as any) || {};
+    
+    // Initialize or reuse existing hue wheel component
+    if (!this.hslHueWheel) {
+      this.hslHueWheel = new HSLHueWheel();
+    }
+    
+    // Get default lightness from first point if available, otherwise use config or default
+    let defaultLightness = wheelConfig.lightness ?? 50;
+    if (preset.points && preset.points.length > 0 && preset.points[0].values.length >= 3) {
+      defaultLightness = preset.points[0].values[2]; // L value from HSL
+    }
+    
+    this.hslHueWheel.init(
+      this.layer,
+      centerX,
+      centerY,
+      radius,
+      {
+        saturation: wheelConfig.saturation ?? 100,
+        lightness: defaultLightness,
+        innerRadius: wheelConfig.innerRadius ?? 0, // 0 = complete circle, no hole
+        showDividers: wheelConfig.showDividers ?? false, // No dividing lines
+        ...wheelConfig,
+      }
+    );
+    
+    this.hslHueWheel.render();
+  }
+
+  /**
+   * Render HSL color points on the hue wheel
+   */
+  private renderHSLColorPoints(points: ColorPoint[]): void {
+    if (!this.layer || !this.hslHueWheel) return;
+
+    // Initialize marker if needed
+    if (!this.marker) {
+      this.marker = new Marker();
     }
 
-    // Add center circle for lightness variation
-    const centerCircle = new Konva.Circle({
-      x: centerX,
-      y: centerY,
-      radius: radius * 0.3,
-      fill: '#ffffff',
-      stroke: '#333',
-      strokeWidth: 2,
+    const geometry = this.hslHueWheel.getGeometry();
+    
+    // Create a coordinate system for the marker
+    // Use the actual radius as the scale, with center at (0, 0) in normalized coords
+    // The coordinate system will translate normalized coords to screen coords
+    const coordinateSystem: CoordinateSystem = {
+      offsetX: geometry.centerX,
+      offsetY: geometry.centerY,
+      scale: geometry.radius,
+      maxX: 1, // Normalized: -1 to 1 for X (full circle width)
+      maxY: 1, // Normalized: -1 to 1 for Y (full circle height)
+    };
+    
+    this.marker.init(this.layer, coordinateSystem, {});
+
+    points.forEach((point) => {
+      if (point.values.length >= 3) {
+        const [h, s] = point.values; // HSL values: Hue (0-360), Saturation (0-100), Lightness (0-100)
+        
+        // Convert HSL to screen coordinates using the hue wheel's coordinate system
+        const [screenX, screenY] = this.hslHueWheel!.hslToScreenCoords(h, s);
+        
+        // Convert screen coords to normalized coords for marker
+        // Normalized coords are relative to center, with radius = 1
+        const normalizedX = (screenX - geometry.centerX) / geometry.radius;
+        const normalizedY = (geometry.centerY - screenY) / geometry.radius; // Invert Y for screen coords
+        
+        // Render the marker
+        this.marker!.render(point, [normalizedX, normalizedY]);
+      }
     });
-    this.layer.add(centerCircle);
   }
 
   private renderColorPoints(
@@ -319,31 +365,6 @@ export class Renderer2D implements IRenderer {
         }
       }
     });
-  }
-
-  private hslToRgb(h: number, s: number, l: number): [number, number, number] {
-    let r: number, g: number, b: number;
-
-    if (s === 0) {
-      r = g = b = l; // achromatic
-    } else {
-      const hue2rgb = (p: number, q: number, t: number) => {
-        if (t < 0) t += 1;
-        if (t > 1) t -= 1;
-        if (t < 1 / 6) return p + (q - p) * 6 * t;
-        if (t < 1 / 2) return q;
-        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-        return p;
-      };
-
-      const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-      const p = 2 * l - q;
-      r = hue2rgb(p, q, h + 1 / 3);
-      g = hue2rgb(p, q, h);
-      b = hue2rgb(p, q, h - 1 / 3);
-    }
-
-    return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
   }
 
   /**
@@ -513,6 +534,20 @@ export class Renderer2D implements IRenderer {
       this.marker = new Marker();
     }
     this.marker.updateConfig(config);
+    // Re-render the current preset
+    if (this.currentPreset) {
+      this.render(this.currentPreset);
+    }
+  }
+
+  /**
+   * Update HSL hue wheel configuration and re-render
+   */
+  updateHSLHueWheel(config: Partial<import('../components/types').HSLHueWheelConfig>): void {
+    if (!this.hslHueWheel) {
+      this.hslHueWheel = new HSLHueWheel();
+    }
+    this.hslHueWheel.updateConfig(config);
     // Re-render the current preset
     if (this.currentPreset) {
       this.render(this.currentPreset);

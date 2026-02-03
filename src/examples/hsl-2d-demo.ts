@@ -113,3 +113,7 @@ window.addEventListener('resize', () => {
 (window as any).updateMarkerFn = (config: any) => {
   visualizer.updateMarker(config);
 };
+
+(window as any).updateHSLHueWheelFn = (config: any) => {
+  visualizer.updateHSLHueWheel(config);
+};

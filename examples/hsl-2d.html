@@ -125,6 +125,23 @@
             margin: 5px 0;
             color: #555;
         }
+        .control-section {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+        }
+        .control-section h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #444;
+            font-size: 16px;
+        }
+        .sub-control-group {
+            margin-left: 20px;
+            padding-left: 15px;
+            border-left: 2px solid #e0e0e0;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -161,6 +178,82 @@
                     <button onclick="setColor(240, 100, 50, 'Blue')">Blue</button>
                     <button onclick="setColor(300, 100, 50, 'Magenta')">Magenta</button>
                 </div>
+
+                <!-- HSL Hue Wheel Controls -->
+                <div class="control-section">
+                    <h4>HSL Hue Wheel Settings</h4>
+                    <div class="control-group">
+                        <label>Show Wheel:</label>
+                        <input type="checkbox" id="hue-wheel-show" checked onchange="updateHSLHueWheel()">
+                    </div>
+                    <div class="control-group">
+                        <label>Saturation:</label>
+                        <input type="range" id="hue-wheel-saturation" min="0" max="100" step="1" value="100" oninput="updateHSLHueWheel()">
+                        <span class="range-value" id="hue-wheel-saturation-value">100</span>
+                    </div>
+                    <div class="control-group">
+                        <label>Lightness:</label>
+                        <input type="range" id="hue-wheel-lightness" min="0" max="100" step="1" value="50" oninput="updateHSLHueWheel()">
+                        <span class="range-value" id="hue-wheel-lightness-value">50</span>
+                    </div>
+                    <div class="control-group">
+                        <label>Inner Radius (0 = full circle):</label>
+                        <input type="range" id="hue-wheel-inner-radius" min="0" max="1" step="0.01" value="0" oninput="updateHSLHueWheel()">
+                        <span class="range-value" id="hue-wheel-inner-radius-value">0</span>
+                    </div>
+                    <div class="control-group">
+                        <label>Show Dividers:</label>
+                        <input type="checkbox" id="hue-wheel-show-dividers" onchange="updateHSLHueWheel()">
+                    </div>
+                </div>
+
+                <!-- Marker Controls -->
+                <div class="control-section">
+                    <h4>Marker Settings</h4>
+                    <div class="control-group">
+                        <label>Show Marker:</label>
+                        <input type="checkbox" id="marker-show" checked onchange="updateMarker()">
+                    </div>
+                    <div class="control-group">
+                        <label>Shape:</label>
+                        <select id="marker-shape" onchange="updateMarker()">
+                            <option value="circle" selected>Circle</option>
+                            <option value="square">Square</option>
+                            <option value="triangle">Triangle</option>
+                            <option value="diamond">Diamond</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>Size:</label>
+                        <input type="number" id="marker-size" min="3" max="20" value="6" onchange="updateMarker()">
+                    </div>
+                    <div class="control-group">
+                        <label>Show Label:</label>
+                        <input type="checkbox" id="marker-show-label" onchange="updateMarker()">
+                    </div>
+                    <div class="control-group">
+                        <label>Show Border:</label>
+                        <input type="checkbox" id="marker-border-show" checked onchange="updateMarker()">
+                    </div>
+                    <div class="sub-control-group" id="marker-border-controls">
+                        <div class="control-group">
+                            <label>Border Weight:</label>
+                            <input type="number" id="marker-border-weight" min="1" max="10" value="2" onchange="updateMarker()">
+                        </div>
+                        <div class="control-group">
+                            <label>Border Color:</label>
+                            <input type="color" id="marker-border-color" value="#000000" onchange="updateMarker()">
+                        </div>
+                        <div class="control-group">
+                            <label>Border Style:</label>
+                            <select id="marker-border-style" onchange="updateMarker()">
+                                <option value="solid" selected>Solid</option>
+                                <option value="dashed">Dashed</option>
+                                <option value="dotted">Dotted</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -186,6 +279,78 @@
                 window.updatePoint(h, s, l, label);
             }
         }
+
+        // Update range value displays
+        document.getElementById('hue-wheel-saturation').addEventListener('input', function() {
+            document.getElementById('hue-wheel-saturation-value').textContent = this.value;
+        });
+        document.getElementById('hue-wheel-lightness').addEventListener('input', function() {
+            document.getElementById('hue-wheel-lightness-value').textContent = this.value;
+        });
+        document.getElementById('hue-wheel-inner-radius').addEventListener('input', function() {
+            document.getElementById('hue-wheel-inner-radius-value').textContent = parseFloat(this.value).toFixed(2);
+        });
+
+        // HSL Hue Wheel update function
+        window.updateHSLHueWheel = function() {
+            if (!window.updateHSLHueWheelFn) {
+                return;
+            }
+
+            const showEl = document.getElementById('hue-wheel-show');
+            const saturationEl = document.getElementById('hue-wheel-saturation');
+            const lightnessEl = document.getElementById('hue-wheel-lightness');
+            const innerRadiusEl = document.getElementById('hue-wheel-inner-radius');
+            const showDividersEl = document.getElementById('hue-wheel-show-dividers');
+
+            if (!showEl || !saturationEl || !lightnessEl || !innerRadiusEl || !showDividersEl) {
+                return;
+            }
+
+            const config = {
+                show: showEl.checked,
+                saturation: parseInt(saturationEl.value),
+                lightness: parseInt(lightnessEl.value),
+                innerRadius: parseFloat(innerRadiusEl.value),
+                showDividers: showDividersEl.checked,
+            };
+
+            window.updateHSLHueWheelFn(config);
+        };
+
+        // Marker update function
+        window.updateMarker = function() {
+            if (!window.updateMarkerFn) {
+                return;
+            }
+
+            const showEl = document.getElementById('marker-show');
+            const shapeEl = document.getElementById('marker-shape');
+            const sizeEl = document.getElementById('marker-size');
+            const showLabelEl = document.getElementById('marker-show-label');
+            const borderShowEl = document.getElementById('marker-border-show');
+            const borderWeightEl = document.getElementById('marker-border-weight');
+            const borderColorEl = document.getElementById('marker-border-color');
+            const borderStyleEl = document.getElementById('marker-border-style');
+
+            if (!showEl || !shapeEl || !sizeEl || !showLabelEl || !borderShowEl) {
+                return;
+            }
+
+            const config = {
+                show: showEl.checked,
+                shape: shapeEl.value,
+                size: parseInt(sizeEl.value),
+                showLabel: showLabelEl.checked,
+                border: borderShowEl.checked ? {
+                    weight: parseInt(borderWeightEl.value),
+                    color: borderColorEl.value,
+                    style: borderStyleEl.value,
+                } : false,
+            };
+
+            window.updateMarkerFn(config);
+        };
     </script>
 </body>
 </html>

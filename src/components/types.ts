@@ -65,3 +65,15 @@ export interface CoordinateSystem {
   maxX: number;
   maxY: number;
 }
+
+/**
+ * HSL Hue Wheel configuration
+ */
+export interface HSLHueWheelConfig {
+  show?: boolean;
+  saturation?: number; // 0-100, default 100
+  lightness?: number; // 0-100, default 50
+  innerRadius?: number; // 0-1, relative to outer radius, 0 = complete circle
+  showDividers?: boolean; // Show lines between segments
+  dividerStyle?: LineStyle;
+}
