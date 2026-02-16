@@ -77,13 +77,11 @@ export class Renderer2D implements IRenderer {
     // Clear layer
     this.layer.destroyChildren();
 
-    // Use preset size when provided and non-zero; otherwise fill the stage (parent-controlled container size)
+    // Always use current stage dimensions for layout so the drawing fills the canvas.
+    // (Preset.size from the parent may be wrong when using responsive values like "100%".)
     const stageW = this.stage.width();
     const stageH = this.stage.height();
-    const size =
-      preset.size && preset.size.width > 0 && preset.size.height > 0
-        ? preset.size
-        : { width: stageW, height: stageH };
+    const size = { width: stageW, height: stageH };
     const centerX = stageW / 2;
     const centerY = stageH / 2;
 
@@ -932,12 +930,7 @@ export class Renderer2D implements IRenderer {
     }
 
     // Use the same coordinate system as the CIE background
-    const size =
-      this.currentPreset?.size &&
-      this.currentPreset.size.width > 0 &&
-      this.currentPreset.size.height > 0
-        ? this.currentPreset.size
-        : { width: this.stage!.width(), height: this.stage!.height() };
+    const size = { width: this.stage!.width(), height: this.stage!.height() };
     const centerX = this.stage!.width() / 2;
     const centerY = this.stage!.height() / 2;
     const maxX = 0.8;
@@ -984,12 +977,7 @@ export class Renderer2D implements IRenderer {
     }
 
     // Use the same coordinate system as the CIE background
-    const size =
-      this.currentPreset?.size &&
-      this.currentPreset.size.width > 0 &&
-      this.currentPreset.size.height > 0
-        ? this.currentPreset.size
-        : { width: this.stage!.width(), height: this.stage!.height() };
+    const size = { width: this.stage!.width(), height: this.stage!.height() };
     const centerX = this.stage!.width() / 2;
     const centerY = this.stage!.height() / 2;
     const maxX = 0.8;
@@ -1154,12 +1142,7 @@ export class Renderer2D implements IRenderer {
     }
 
     // Use the same coordinate system as the CIE background
-    const size =
-      this.currentPreset?.size &&
-      this.currentPreset.size.width > 0 &&
-      this.currentPreset.size.height > 0
-        ? this.currentPreset.size
-        : { width: this.stage!.width(), height: this.stage!.height() };
+    const size = { width: this.stage!.width(), height: this.stage!.height() };
     const centerX = this.stage!.width() / 2;
     const centerY = this.stage!.height() / 2;
     const maxX = 0.8;
@@ -1264,12 +1247,7 @@ export class Renderer2D implements IRenderer {
     }
 
     // Use the same coordinate system as the CIE background
-    const size =
-      this.currentPreset?.size &&
-      this.currentPreset.size.width > 0 &&
-      this.currentPreset.size.height > 0
-        ? this.currentPreset.size
-        : { width: this.stage!.width(), height: this.stage!.height() };
+    const size = { width: this.stage!.width(), height: this.stage!.height() };
     const centerX = this.stage!.width() / 2;
     const centerY = this.stage!.height() / 2;
     const maxX = 0.8;
@@ -1414,12 +1392,7 @@ export class Renderer2D implements IRenderer {
     }
 
     // Use the same coordinate system as the CIE background
-    const size =
-      this.currentPreset?.size &&
-      this.currentPreset.size.width > 0 &&
-      this.currentPreset.size.height > 0
-        ? this.currentPreset.size
-        : { width: this.stage!.width(), height: this.stage!.height() };
+    const size = { width: this.stage!.width(), height: this.stage!.height() };
     const centerX = this.stage!.width() / 2;
     const centerY = this.stage!.height() / 2;
     const maxX = 0.8;
