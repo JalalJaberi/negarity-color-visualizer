@@ -23,8 +23,11 @@ export class Renderer3D implements IRenderer {
     this.container = container;
     this.config = config;
 
-    const width = config.width || container.clientWidth || 800;
-    const height = config.height || container.clientHeight || 600;
+    // Use explicit config size, else container size, else fallback only when container has no layout
+    const cw = container.clientWidth || 0;
+    const ch = container.clientHeight || 0;
+    const width = config.width ?? (cw > 0 ? cw : 800);
+    const height = config.height ?? (ch > 0 ? ch : 600);
 
     // Scene
     this.scene = new THREE.Scene();

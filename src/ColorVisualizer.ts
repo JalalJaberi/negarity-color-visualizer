@@ -11,11 +11,42 @@ import {
   ColorPoint,
 } from './types';
 
+/** Fallback size when container has no layout (e.g. not yet visible). */
+const DEFAULT_FALLBACK_WIDTH = 800;
+const DEFAULT_FALLBACK_HEIGHT = 600;
+
+/**
+ * Resolve pixel dimensions: prefer explicit config, then container size, then fallback only if container is 0.
+ * Pass undefined for width/height in config to mean "use container size" (e.g. parent controls via CSS).
+ */
+function resolveSize(
+  container: HTMLElement,
+  configWidth: number | undefined,
+  configHeight: number | undefined
+): { width: number; height: number } {
+  const cw = container.clientWidth || 0;
+  const ch = container.clientHeight || 0;
+  const width =
+    configWidth !== undefined && configWidth !== null
+      ? configWidth
+      : cw > 0
+        ? cw
+        : DEFAULT_FALLBACK_WIDTH;
+  const height =
+    configHeight !== undefined && configHeight !== null
+      ? configHeight
+      : ch > 0
+        ? ch
+        : DEFAULT_FALLBACK_HEIGHT;
+  return { width, height };
+}
+
 export class ColorVisualizer {
   private renderer: IRenderer | null = null;
   private container: HTMLElement | null = null;
   private config: VisualizerConfig;
   public currentPreset: PresetConfig | null = null;
+  private resizeObserver: ResizeObserver | null = null;
 
   constructor(container: HTMLElement | string, config?: Partial<VisualizerConfig>) {
     // Resolve container
@@ -29,11 +60,15 @@ export class ColorVisualizer {
       this.container = container;
     }
 
-    // Merge default config with user config
+    const { width, height } = resolveSize(
+      this.container,
+      config?.width,
+      config?.height
+    );
+
+    // Merge default config with user config. Omit width/height in config to use container size (parent-controlled).
     this.config = {
       mode: '3d',
-      width: this.container.clientWidth || 800,
-      height: this.container.clientHeight || 600,
       backgroundColor: '#f0f0f0',
       showAxes: true,
       showLabels: true,
@@ -44,10 +79,20 @@ export class ColorVisualizer {
         speed: 0.01,
       },
       ...config,
+      width,
+      height,
     };
 
     // Initialize renderer based on mode
     this.initializeRenderer();
+
+    // When parent controls size (e.g. CSS width/height 100%), keep canvas in sync
+    if (typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver(() => {
+        this.handleResize();
+      });
+      this.resizeObserver.observe(this.container);
+    }
   }
 
   /**
@@ -173,6 +218,7 @@ export class ColorVisualizer {
    * Destroy the visualizer and clean up resources
    */
   destroy(): void {
+    this.disposeResizeObserver();
     if (this.renderer) {
       this.renderer.destroy();
       this.renderer = null;
@@ -206,13 +252,25 @@ export class ColorVisualizer {
   }
 
   /**
-   * Handle window resize
+   * Handle container or window resize. Uses container dimensions when available so parent-controlled sizing (e.g. 100%) stays in sync.
+   * Re-renders the current preset after resize so 2D content (diagrams, wheels) is laid out for the new size.
    */
   handleResize(): void {
     if (this.container && this.renderer) {
-      const width = this.container.clientWidth || this.config.width || 800;
-      const height = this.container.clientHeight || this.config.height || 600;
+      const width = this.container.clientWidth || this.config.width || DEFAULT_FALLBACK_WIDTH;
+      const height = this.container.clientHeight || this.config.height || DEFAULT_FALLBACK_HEIGHT;
       this.resize(width, height);
+      if (this.currentPreset) {
+        this.render(this.currentPreset);
+      }
+    }
+  }
+
+  private disposeResizeObserver(): void {
+    if (this.resizeObserver && this.container) {
+      this.resizeObserver.unobserve(this.container);
+      this.resizeObserver.disconnect();
+      this.resizeObserver = null;
     }
   }
 }

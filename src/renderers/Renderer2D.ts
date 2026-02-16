@@ -33,8 +33,13 @@ export class Renderer2D implements IRenderer {
   init(container: HTMLElement, config: VisualizerConfig): void {
     this.config = config;
 
-    const width = config.width || container.clientWidth || 800;
-    const height = config.height || container.clientHeight || 600;
+    // Use explicit config size, else container size, else fallback only when container has no layout
+    const cw = container.clientWidth || 0;
+    const ch = container.clientHeight || 0;
+    const width =
+      config.width ?? (cw > 0 ? cw : 800);
+    const height =
+      config.height ?? (ch > 0 ? ch : 600);
 
     // Create stage
     this.stage = new Konva.Stage({
@@ -72,9 +77,15 @@ export class Renderer2D implements IRenderer {
     // Clear layer
     this.layer.destroyChildren();
 
-    const size = preset.size || { width: 400, height: 400 };
-    const centerX = this.stage.width() / 2;
-    const centerY = this.stage.height() / 2;
+    // Use preset size when provided and non-zero; otherwise fill the stage (parent-controlled container size)
+    const stageW = this.stage.width();
+    const stageH = this.stage.height();
+    const size =
+      preset.size && preset.size.width > 0 && preset.size.height > 0
+        ? preset.size
+        : { width: stageW, height: stageH };
+    const centerX = stageW / 2;
+    const centerY = stageH / 2;
 
     // Render based on color space and shape
     if (preset.colorSpace.name === 'RGB' && preset.shape === 'cube') {
@@ -253,7 +264,7 @@ export class Renderer2D implements IRenderer {
     if (!this.layer) return;
 
     // Create HSL hue wheel component
-    const radius = Math.min(size.width || 400, size.height || 400) / 2.5;
+    const radius = Math.min(size.width, size.height) / 2.5;
     
     // Get config from preset
     const wheelConfig = (preset.config?.custom?.hslHueWheel as any) || {};
@@ -704,7 +715,7 @@ export class Renderer2D implements IRenderer {
     if (!this.layer) return;
 
     // Create HSV hue wheel component
-    const radius = Math.min(size.width || 400, size.height || 400) / 2.5;
+    const radius = Math.min(size.width, size.height) / 2.5;
     
     // Get config from preset
     const wheelConfig = (preset.config?.custom?.hsvHueWheel as any) || {};
@@ -921,7 +932,12 @@ export class Renderer2D implements IRenderer {
     }
 
     // Use the same coordinate system as the CIE background
-    const size = this.currentPreset?.size || { width: 400, height: 400 };
+    const size =
+      this.currentPreset?.size &&
+      this.currentPreset.size.width > 0 &&
+      this.currentPreset.size.height > 0
+        ? this.currentPreset.size
+        : { width: this.stage!.width(), height: this.stage!.height() };
     const centerX = this.stage!.width() / 2;
     const centerY = this.stage!.height() / 2;
     const maxX = 0.8;
@@ -968,7 +984,12 @@ export class Renderer2D implements IRenderer {
     }
 
     // Use the same coordinate system as the CIE background
-    const size = this.currentPreset?.size || { width: 400, height: 400 };
+    const size =
+      this.currentPreset?.size &&
+      this.currentPreset.size.width > 0 &&
+      this.currentPreset.size.height > 0
+        ? this.currentPreset.size
+        : { width: this.stage!.width(), height: this.stage!.height() };
     const centerX = this.stage!.width() / 2;
     const centerY = this.stage!.height() / 2;
     const maxX = 0.8;
@@ -1133,7 +1154,12 @@ export class Renderer2D implements IRenderer {
     }
 
     // Use the same coordinate system as the CIE background
-    const size = this.currentPreset?.size || { width: 400, height: 400 };
+    const size =
+      this.currentPreset?.size &&
+      this.currentPreset.size.width > 0 &&
+      this.currentPreset.size.height > 0
+        ? this.currentPreset.size
+        : { width: this.stage!.width(), height: this.stage!.height() };
     const centerX = this.stage!.width() / 2;
     const centerY = this.stage!.height() / 2;
     const maxX = 0.8;
@@ -1238,7 +1264,12 @@ export class Renderer2D implements IRenderer {
     }
 
     // Use the same coordinate system as the CIE background
-    const size = this.currentPreset?.size || { width: 400, height: 400 };
+    const size =
+      this.currentPreset?.size &&
+      this.currentPreset.size.width > 0 &&
+      this.currentPreset.size.height > 0
+        ? this.currentPreset.size
+        : { width: this.stage!.width(), height: this.stage!.height() };
     const centerX = this.stage!.width() / 2;
     const centerY = this.stage!.height() / 2;
     const maxX = 0.8;
@@ -1383,7 +1414,12 @@ export class Renderer2D implements IRenderer {
     }
 
     // Use the same coordinate system as the CIE background
-    const size = this.currentPreset?.size || { width: 400, height: 400 };
+    const size =
+      this.currentPreset?.size &&
+      this.currentPreset.size.width > 0 &&
+      this.currentPreset.size.height > 0
+        ? this.currentPreset.size
+        : { width: this.stage!.width(), height: this.stage!.height() };
     const centerX = this.stage!.width() / 2;
     const centerY = this.stage!.height() / 2;
     const maxX = 0.8;

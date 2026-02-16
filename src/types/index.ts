@@ -40,7 +40,8 @@ export interface ColorPoint {
 }
 
 /**
- * Visualization configuration
+ * Visualization configuration.
+ * Omit width/height (or pass undefined) to use container size so the parent can control dimensions (e.g. CSS width/height 100%).
  */
 export interface VisualizerConfig {
   mode: RenderMode;
