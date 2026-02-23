@@ -20,6 +20,7 @@ export interface CIEBackgroundConfig {
   brightness?: number; // 0-1, controls Y luminance value
   opacity?: number; // 0-1, controls rectangle opacity
   boundaryLine?: LineStyle | false; // false to hide boundary line
+  gridSize?: number; // resolution of the color grid (default 200)
 }
 
 /**

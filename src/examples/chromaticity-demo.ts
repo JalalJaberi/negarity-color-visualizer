@@ -35,7 +35,7 @@ const chromaticityPreset: PresetConfig = {
     width: container.clientWidth || 800,
     height: 600,
     backgroundColor: '#ffffff',
-    showAxes: true,
+    showAxes: false,
     showLabels: true,
     showGrid: false,
     interactive: true,
@@ -46,16 +46,7 @@ const chromaticityPreset: PresetConfig = {
 };
 
 // Create visualizer
-const visualizer = new ColorVisualizer(container, {
-  mode: '2d',
-  width: container.clientWidth || 800,
-  height: 600,
-  backgroundColor: '#ffffff',
-  showAxes: true,
-  showLabels: true,
-  showGrid: false,
-  interactive: true,
-});
+const visualizer = new ColorVisualizer(container, chromaticityPreset.config);
 
 // Render the chromaticity diagram
 visualizer.render(chromaticityPreset);

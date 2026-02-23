@@ -236,11 +236,15 @@
                     </div>
                     <div class="control-group">
                         <label>Opacity:</label>
-                        <input type="range" id="cie-opacity" min="0" max="1" step="0.05" value="0.85" oninput="updateCIEBackground()">
-                        <span class="range-value" id="cie-opacity-value">0.85</span>
+                        <input type="range" id="cie-opacity" min="0" max="1" step="0.05" value="1.0" oninput="updateCIEBackground()">
+                        <span class="range-value" id="cie-opacity-value">1.0</span>
                     </div>
                     <div class="control-group">
-                        <label>Show Boundary Line:</label>
+                        <label>Quality (grid size):</label>
+                        <input type="number" id="cie-grid-size" min="20" max="500" value="200" onchange="updateCIEBackground()" title="Lower = faster, higher = smoother (default 200)">
+                        <span style="color:#666;font-size:12px;">default 200</span>
+                    </div>
+                    <div class="control-group">
                         <input type="checkbox" id="cie-boundary-show" onchange="updateCIEBackground()">
                     </div>
                     <div class="sub-control-group" id="cie-boundary-controls" style="display: none;">
@@ -393,6 +397,7 @@
                 show: show,
                 brightness: brightness,
                 opacity: opacity,
+                gridSize: Math.min(500, Math.max(20, parseInt(document.getElementById('cie-grid-size').value, 10) || 200)),
                 boundaryLine: showBoundary ? {
                     weight: parseInt(document.getElementById('cie-boundary-weight').value),
                     color: document.getElementById('cie-boundary-color').value,
@@ -472,6 +477,7 @@
                 show: show,
                 brightness: brightness,
                 opacity: opacity,
+                gridSize: Math.min(500, Math.max(20, parseInt(document.getElementById('cie-grid-size').value, 10) || 200)),
                 boundaryLine: showBoundary ? {
                     weight: parseInt(document.getElementById('cie-boundary-weight').value),
                     color: document.getElementById('cie-boundary-color').value,

@@ -33,8 +33,9 @@ export class CIEBackground {
       this.config = {
         show: true,
         brightness: 1.0,
-        opacity: 0.85,
+        opacity: 1.0,
         boundaryLine: false, // Default: no boundary line
+        gridSize: 200,
         ...config,
       };
       this.initialized = true;
@@ -62,11 +63,11 @@ export class CIEBackground {
 
     const { offsetX, offsetY, scale, maxX, maxY } = this.coordinateSystem;
     const brightness = this.config.brightness ?? 1.0;
-    const opacity = this.config.opacity ?? 0.85;
+    const opacity = this.config.opacity ?? 1.0;
+    const gridSize = this.config.gridSize ?? 200;
     const spectralLocus = getSpectralLocus();
 
-    // Create a very high-resolution grid for ultra-smooth edges
-    const gridSize = 200;
+    // Create a high-resolution grid for smooth edges
     const stepX = (maxX * scale) / gridSize;
     const stepY = (maxY * scale) / gridSize;
 
