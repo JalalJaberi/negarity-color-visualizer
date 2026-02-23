@@ -174,17 +174,6 @@
             </div>
             
             <div class="controls">
-                <h3>Color Point Controls</h3>
-                <div class="control-group">
-                    <label>L* (Lightness):</label>
-                    <input type="number" id="l-value" min="0" max="100" value="50">
-                    <label>C* (Chroma):</label>
-                    <input type="number" id="c-value" min="0" max="150" value="0">
-                    <label>h* (Hue):</label>
-                    <input type="number" id="h-value" min="0" max="360" value="0">
-                    <button onclick="updateFromInputs()">Update Point</button>
-                </div>
-
                 <h3>Preset Colors</h3>
                 <div class="preset-buttons">
                     <button onclick="setColorFromRgb(128, 128, 128, 'Neutral Gray')">Neutral Gray</button>
@@ -268,21 +257,7 @@
 
     <script type="module" src="/src/examples/lch-2d-demo.ts"></script>
     <script>
-        function updateFromInputs() {
-            const l = parseFloat(document.getElementById('l-value').value) || 0;
-            const c = parseFloat(document.getElementById('c-value').value) || 0;
-            const h = parseFloat(document.getElementById('h-value').value) || 0;
-            
-            if (window.updatePoint) {
-                window.updatePoint(l, c, h, `LCh(${l.toFixed(1)}, ${c.toFixed(1)}, ${h.toFixed(1)}°)`);
-            }
-        }
-
         function setColor(l, c, h, label) {
-            document.getElementById('l-value').value = l;
-            document.getElementById('c-value').value = c;
-            document.getElementById('h-value').value = h;
-            
             if (window.updatePoint) {
                 window.updatePoint(l, c, h, label);
             }

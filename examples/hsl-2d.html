@@ -182,17 +182,6 @@
             </div>
             
             <div class="controls">
-                <h3>Color Point Controls</h3>
-                <div class="control-group">
-                    <label>Hue (H):</label>
-                    <input type="number" id="h-value" min="0" max="360" value="0">
-                    <label>Saturation (S):</label>
-                    <input type="number" id="s-value" min="0" max="100" value="100">
-                    <label>Lightness (L):</label>
-                    <input type="number" id="l-value" min="0" max="100" value="50">
-                    <button onclick="updateFromInputs()">Update Point</button>
-                </div>
-                
                 <h3>Preset Colors</h3>
                 <div class="preset-buttons">
                     <button onclick="setColor(0, 100, 50, 'Red')">Red</button>
@@ -284,21 +273,7 @@
 
     <script type="module" src="/src/examples/hsl-2d-demo.ts"></script>
     <script>
-        function updateFromInputs() {
-            const h = parseInt(document.getElementById('h-value').value) || 0;
-            const s = parseInt(document.getElementById('s-value').value) || 0;
-            const l = parseInt(document.getElementById('l-value').value) || 0;
-            
-            if (window.updatePoint) {
-                window.updatePoint(h, s, l, `HSL(${h}, ${s}%, ${l}%)`);
-            }
-        }
-        
         function setColor(h, s, l, label) {
-            document.getElementById('h-value').value = h;
-            document.getElementById('s-value').value = s;
-            document.getElementById('l-value').value = l;
-            
             if (window.updatePoint) {
                 window.updatePoint(h, s, l, label);
             }

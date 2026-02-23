@@ -179,19 +179,6 @@
             </div>
             
             <div class="controls">
-                <h3>Color Point Controls</h3>
-                <div class="control-group">
-                    <label>Cyan (C):</label>
-                    <input type="number" id="c-value" min="0" max="100" value="100">
-                    <label>Magenta (M):</label>
-                    <input type="number" id="m-value" min="0" max="100" value="0">
-                    <label>Yellow (Y):</label>
-                    <input type="number" id="y-value" min="0" max="100" value="0">
-                    <label>Key (K):</label>
-                    <input type="number" id="k-value" min="0" max="100" value="0">
-                    <button onclick="updateFromInputs()">Update Point</button>
-                </div>
-                
                 <h3>Preset Colors</h3>
                 <div class="preset-buttons">
                     <button onclick="setColor(100, 0, 0, 0, 'Cyan')">Cyan</button>
@@ -296,23 +283,7 @@
 
     <script type="module" src="/src/examples/cmyk-2d-demo.ts"></script>
     <script>
-        function updateFromInputs() {
-            const c = parseInt(document.getElementById('c-value').value) || 0;
-            const m = parseInt(document.getElementById('m-value').value) || 0;
-            const y = parseInt(document.getElementById('y-value').value) || 0;
-            const k = parseInt(document.getElementById('k-value').value) || 0;
-            
-            if (window.updatePoint) {
-                window.updatePoint(c, m, y, k, `CMYK(${c}%, ${m}%, ${y}%, ${k}%)`);
-            }
-        }
-        
         function setColor(c, m, y, k, label) {
-            document.getElementById('c-value').value = c;
-            document.getElementById('m-value').value = m;
-            document.getElementById('y-value').value = y;
-            document.getElementById('k-value').value = k;
-            
             if (window.updatePoint) {
                 window.updatePoint(c, m, y, k, label);
             }

@@ -174,17 +174,6 @@
             </div>
             
             <div class="controls">
-                <h3>Color Point Controls</h3>
-                <div class="control-group">
-                    <label>L* (Lightness):</label>
-                    <input type="number" id="l-value" min="0" max="100" value="50">
-                    <label>a* (Green-Red):</label>
-                    <input type="number" id="a-value" min="-128" max="127" value="0">
-                    <label>b* (Blue-Yellow):</label>
-                    <input type="number" id="b-value" min="-128" max="127" value="0">
-                    <button onclick="updateFromInputs()">Update Point</button>
-                </div>
-
                 <h3>Preset Colors</h3>
                 <div class="preset-buttons">
                     <button onclick="setColorFromRgb(128, 128, 128, 'Neutral Gray')">Neutral Gray</button>
@@ -268,21 +257,7 @@
 
     <script type="module" src="/src/examples/lab-2d-demo.ts"></script>
     <script>
-        function updateFromInputs() {
-            const l = parseFloat(document.getElementById('l-value').value) || 0;
-            const a = parseFloat(document.getElementById('a-value').value) || 0;
-            const b = parseFloat(document.getElementById('b-value').value) || 0;
-            
-            if (window.updatePoint) {
-                window.updatePoint(l, a, b, `Lab(${l.toFixed(1)}, ${a.toFixed(1)}, ${b.toFixed(1)})`);
-            }
-        }
-
         function setColor(l, a, b, label) {
-            document.getElementById('l-value').value = l;
-            document.getElementById('a-value').value = a;
-            document.getElementById('b-value').value = b;
-            
             if (window.updatePoint) {
                 window.updatePoint(l, a, b, label);
             }
