@@ -117,8 +117,8 @@ export function createChannelSlider(
   }
 
   function setGradientCSS(css: string): void {
-    track.style.backgroundImage = css;
     track.style.background = css;
+    track.style.backgroundImage = css;
   }
 
   function drawCircularThumb(): void {
@@ -174,6 +174,30 @@ export function createChannelSlider(
 
   function updateTrackGradient(): void {
     const g = channelDef.gradient || {};
+    const space = (_colorSpace || '').toUpperCase();
+    const key = channelDef.key;
+
+    // Force gradient for Lab a*/b* and YCbCr Cb/Cr by color space and channel key (no dependency on type)
+    if ((space === 'LAB' && (key === 'a' || key === 'b')) || (space === 'YCBCR' && (key === 'cb' || key === 'cr'))) {
+      let dep = computeDependentGradient(_colorSpace, key, values);
+      if (!dep?.stops?.length) {
+        const minC = g.minColor || '#000';
+        const maxC = g.maxColor || '#fff';
+        const midC = g.midColor;
+        dep = midC !== undefined
+          ? { type: 'linear', stops: [{ pos: 0, color: minC }, { pos: 0.5, color: midC }, { pos: 1, color: maxC }] }
+          : { type: 'linear', stops: [{ pos: 0, color: minC }, { pos: 1, color: maxC }] };
+      }
+      if (dep.stops.length) {
+        const parts = dep.stops.map((s) => `${s.pos * 100}% ${s.color}`).join(', ');
+        const gradientCss = `linear-gradient(to right, ${parts})`;
+        setGradientCSS(gradientCss);
+        track.style.setProperty('background', gradientCss, 'important');
+        track.style.setProperty('background-image', gradientCss, 'important');
+      }
+      // Fall through so dependent block can also set gradient (in case forced block didn't apply)
+    }
+
     if (channelDef.type === CHANNEL_TYPES.LINEAR) {
       const minC = g.minColor || '#000000';
       const maxC = g.maxColor || '#ffffff';
@@ -185,20 +209,28 @@ export function createChannelSlider(
       drawCircularThumb();
       return;
     }
-    if (channelDef.type === CHANNEL_TYPES.DEPENDENT_2 || channelDef.type === CHANNEL_TYPES.DEPENDENT_3) {
-      const dep = getDependentGradient ? getDependentGradient(channelDef.key, values) : null;
+    if (channelDef.type === CHANNEL_TYPES.DEPENDENT_2 || channelDef.type === CHANNEL_TYPES.DEPENDENT_3 || channelDef.type === 'dependent2' || channelDef.type === 'dependent3') {
+      let dep = getDependentGradient ? getDependentGradient(channelDef.key, values) : null;
+      if (!dep?.stops?.length && (channelDef.key === 'cb' || channelDef.key === 'cr')) {
+        dep = computeDependentGradient(_colorSpace, channelDef.key, values);
+      }
+      if (!dep?.stops?.length && (channelDef.key === 'a' || channelDef.key === 'b') && (_colorSpace || '').toUpperCase() === 'LAB') {
+        dep = computeDependentGradient(_colorSpace, channelDef.key, values);
+      }
       if (dep?.stops?.length) {
         const parts = dep.stops.map((s) => `${s.pos * 100}% ${s.color}`).join(', ');
         const gradientCss = `linear-gradient(to right, ${parts})`;
-        track.style.background = gradientCss;
-        track.style.backgroundImage = gradientCss;
+        setGradientCSS(gradientCss);
+        track.style.setProperty('background', gradientCss, 'important');
+        track.style.setProperty('background-image', gradientCss, 'important');
       } else {
         const minC = g.minColor || '#000';
         const maxC = g.maxColor || '#fff';
         const midC = g.midColor;
         const gradientCss = midC !== undefined ? `linear-gradient(to right, ${minC}, ${midC}, ${maxC})` : `linear-gradient(to right, ${minC}, ${maxC})`;
-        track.style.background = gradientCss;
-        track.style.backgroundImage = gradientCss;
+        setGradientCSS(gradientCss);
+        track.style.setProperty('background', gradientCss, 'important');
+        track.style.setProperty('background-image', gradientCss, 'important');
       }
       return;
     }
@@ -321,6 +353,16 @@ export function createChannelSlider(
   updateTrackGradient();
   updateThumbPosition();
 
+  // Re-apply gradient on next frame so it wins over any CSS or layout that might have run after
+  const isLabOrYcbcrDependent =
+    ((_colorSpace || '').toUpperCase() === 'LAB' && (channelDef.key === 'a' || channelDef.key === 'b')) ||
+    ((_colorSpace || '').toUpperCase() === 'YCBCR' && (channelDef.key === 'cb' || channelDef.key === 'cr'));
+  if (isLabOrYcbcrDependent) {
+    requestAnimationFrame(() => {
+      updateTrackGradient();
+    });
+  }
+
   return {
     get el() {
       return wrap;
@@ -373,9 +415,11 @@ export function computeDependentGradient(
   }
   if (space === 'LAB' && (channelKey === 'a' || channelKey === 'b')) {
     const L = v.L ?? v.l ?? 50;
-    const minColor = channelKey === 'a' ? toHex(...labToRgb(L, -128, 0)) : toHex(...labToRgb(L, 0, -128));
     const midColor = toHex(...labToRgb(L, 0, 0));
-    const maxColor = channelKey === 'a' ? toHex(...labToRgb(L, 127, 0)) : toHex(...labToRgb(L, 0, 127));
+    // a*: Green (negative) ↔ Red/Magenta (positive). b*: Blue (negative) ↔ Yellow (positive).
+    // Use explicit endpoint hex so the gradient is always visible; mid reflects current L.
+    const minColor = channelKey === 'a' ? '#008000' : '#0000ff';  // green, blue
+    const maxColor = channelKey === 'a' ? '#e00050' : '#ffff00';   // red-magenta, yellow
     return { type: 'linear', stops: [{ pos: 0, color: minColor }, { pos: 0.5, color: midColor }, { pos: 1, color: maxColor }] };
   }
   if (space === 'LCH' && channelKey === 'C') {
@@ -387,11 +431,18 @@ export function computeDependentGradient(
   }
   if (space === 'YCBCR' && (channelKey === 'cb' || channelKey === 'cr')) {
     const y = v.y ?? 128;
-    const [r, g, b] = ycbcrToRgb(y, 128, 128);
-    const mid = toHex(r, g, b);
-    const minC = channelKey === 'cb' ? '#0000ff' : '#008000';
-    const maxC = channelKey === 'cb' ? '#ffff00' : '#ff0000';
-    return { type: 'linear', stops: [{ pos: 0, color: minC }, { pos: 0.5, color: mid }, { pos: 1, color: maxC }] };
+    const midRgb = ycbcrToRgb(y, 128, 128);
+    const mid = toHex(...midRgb);
+    const minRgb = channelKey === 'cb' ? ycbcrToRgb(y, 16, 128) : ycbcrToRgb(y, 128, 16);
+    const maxRgb = channelKey === 'cb' ? ycbcrToRgb(y, 240, 128) : ycbcrToRgb(y, 128, 240);
+    return {
+      type: 'linear',
+      stops: [
+        { pos: 0, color: toHex(...minRgb) },
+        { pos: 0.5, color: mid },
+        { pos: 1, color: toHex(...maxRgb) },
+      ],
+    };
   }
   return null;
 }

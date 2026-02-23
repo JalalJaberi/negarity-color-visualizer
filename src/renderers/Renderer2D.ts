@@ -1339,23 +1339,23 @@ export class Renderer2D implements IRenderer {
     });
     this.layer.add(triangle);
 
-    // Add labels for R, G, B at the vertices
-    const labels = ['R', 'G', 'B'];
-    const labelColors = ['#ff0000', '#00ff00', '#0000ff'];
-    screenVertices.forEach(([x, y], index) => {
-      const label = new Konva.Text({
-        x: x - 10,
-        y: y - 10,
-        text: labels[index],
-        fontSize: 16,
-        fontFamily: 'Arial',
-        fill: labelColors[index],
-        fontStyle: 'bold',
+    // Draw vertex labels only (same as RGB chromaticity), respecting showLabels
+    if (this.config?.showLabels !== false) {
+      const labels = ['R', 'G', 'B'];
+      const labelColors = ['#ff0000', '#00ff00', '#0000ff'];
+      screenVertices.forEach(([x, y], index) => {
+        const label = new Konva.Text({
+          x: x - 10,
+          y: y - 10,
+          text: labels[index],
+          fontSize: 16,
+          fontFamily: 'Arial',
+          fill: labelColors[index],
+          fontStyle: 'bold',
+        });
+        this.layer!.add(label);
       });
-      if (this.layer) {
-        this.layer.add(label);
-      }
-    });
+    }
 
     // Initialize and render axes component
     if (!this.axes) {

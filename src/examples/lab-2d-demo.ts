@@ -23,9 +23,9 @@ const labPreset: PresetConfig = {
   },
   points: [
     {
-      values: [50, 0, 0], // Lab: L*=50, a*=0, b*=0 (neutral gray)
-      color: '#808080',
-      label: 'Neutral Gray',
+      values: [70, 30, 50], // Lab: L*=70, a*=30, b*=50 (vivid orange)
+      color: '#E67A2C',
+      label: 'Vivid Orange',
     },
   ],
   config: {
@@ -55,7 +55,7 @@ try {
   ccvInstance = initColorChannelVisualizer({
     containerId: 'ccv-container',
     colorSpace: 'LAB',
-    initialValues: { L: 50, a: 0, b: 0 },
+    initialValues: { L: 70, a: 30, b: 50 },
     showPreview: true,
     onCCVChange: (vals) => {
       const L = vals.L ?? 50;

@@ -63,21 +63,14 @@ export function ColorChannelVisualizer(
     rafId = null;
     const changedKey = pendingChangedKey;
     pendingChangedKey = null;
-    const t0 = performance.now();
-    console.log('[CCV] flush start (rAF fired)');
     notifyChange();
-    const t1 = performance.now();
-    let updated = 0;
     sliders.forEach((s, i) => {
       const ch = space.channels[i];
       const dependsOnChanged = ch.dependsOn?.includes(changedKey ?? '');
       if (dependsOnChanged) {
         s.updateGradient();
-        updated++;
       }
     });
-    const t2 = performance.now();
-    console.log(`[CCV] flush: notifyChange ${(t1 - t0).toFixed(2)}ms, updateGradient ${(t2 - t1).toFixed(2)}ms (${updated} sliders), total ${(t2 - t0).toFixed(2)}ms`);
   }
   function scheduleFlush(key: string) {
     pendingChangedKey = key;
@@ -90,7 +83,6 @@ export function ColorChannelVisualizer(
   }
 
   function notifyChange() {
-    console.log('[CCV] notifyChange calling onChange (updatePoint)...');
     onChange?.({ ...values });
     if (previewEl) previewEl.style.backgroundColor = valuesToHex(colorSpaceKey, values);
   }
@@ -134,6 +126,7 @@ export function ColorChannelVisualizer(
           sliders[i].setValue(v);
         }
       });
+      // Refresh all slider track gradients (e.g. Lab a*/b*, YCbCr Cb/Cr) so they reflect the new color
       sliders.forEach((s) => s.updateGradient());
       if (previewEl) previewEl.style.backgroundColor = valuesToHex(colorSpaceKey, values);
       // Do not call notifyChange() here: setValues is used when the parent syncs state back
