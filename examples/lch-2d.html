@@ -134,6 +134,24 @@
             border-left: 2px solid #e0e0e0;
             margin-top: 10px;
         }
+        .visualizer-with-channels {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .visualizer-with-channels .visualizer-container {
+            flex: 1 1 min(400px, 100%);
+            min-width: 0;
+        }
+        .ccv-section {
+            flex: 0 1 320px;
+            min-width: 0;
+        }
+        .ccv-container {
+            min-height: 200px;
+        }
     </style>
 </head>
 <body>
@@ -147,7 +165,13 @@
         </div>
 
         <div class="example-section">
-            <div id="lch-visualizer" class="visualizer-container"></div>
+            <div class="visualizer-with-channels">
+                <div id="lch-visualizer" class="visualizer-container"></div>
+                <div class="ccv-section">
+                    <h4 style="margin: 0 0 10px 0;">Channel sliders</h4>
+                    <div id="ccv-container" class="ccv-container"></div>
+                </div>
+            </div>
             
             <div class="controls">
                 <h3>Color Point Controls</h3>

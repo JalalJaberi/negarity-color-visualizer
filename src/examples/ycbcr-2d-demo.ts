@@ -3,9 +3,10 @@
  * Shows CIE chromaticity diagram with YCbCr gamut triangle
  */
 
-import { ColorVisualizer, YCBCR_COLOR_SPACE } from '../index';
+import { ColorVisualizer, YCBCR_COLOR_SPACE, ColorChannelVisualizer } from '../index';
 import { PresetConfig } from '../types';
 import { ycbcrToRgb, rgbToYcbcr } from '../utils/colorConversion';
+import { initColorChannelVisualizer } from './initColorChannelVisualizer';
 
 const container = document.getElementById('ycbcr-visualizer');
 if (!container) {
@@ -49,6 +50,22 @@ const visualizer = new ColorVisualizer(container, {
 
 visualizer.render(ycbcrPreset);
 
+let ccvInstance: ReturnType<typeof ColorChannelVisualizer> | null = null;
+try {
+  ccvInstance = initColorChannelVisualizer({
+    containerId: 'ccv-container',
+    colorSpace: 'YCBCR',
+    initialValues: { y: 128, cb: 128, cr: 128 },
+    showPreview: true,
+    onCCVChange: (vals) => {
+      const y = vals.y ?? 128;
+      const cb = vals.cb ?? 128;
+      const cr = vals.cr ?? 128;
+      (window as any).updatePoint?.(y, cb, cr, `YCbCr(${y}, ${cb}, ${cr})`);
+    },
+  });
+} catch (_) {}
+
 (window as any).updatePoint = (y: number, cb: number, cr: number, label?: string) => {
   const [r, g, b] = ycbcrToRgb(y, cb, cr);
   const hexColor = `#${[r, g, b]
@@ -67,6 +84,7 @@ visualizer.render(ycbcrPreset);
   };
 
   visualizer.render(newPreset);
+  if (ccvInstance) ccvInstance.setValues({ y, cb, cr });
 };
 
 window.addEventListener('resize', () => {

@@ -3,9 +3,10 @@
  * Shows C vs M plot
  */
 
-import { ColorVisualizer, CMYK_COLOR_SPACE } from '../index';
+import { ColorVisualizer, CMYK_COLOR_SPACE, ColorChannelVisualizer } from '../index';
 import { PresetConfig } from '../types';
 import { cmykToRgb } from '../utils/colorConversion';
+import { initColorChannelVisualizer } from './initColorChannelVisualizer';
 
 const container = document.getElementById('cmyk-visualizer');
 if (!container) {
@@ -49,6 +50,23 @@ const visualizer = new ColorVisualizer(container, {
 
 visualizer.render(cmykPreset);
 
+let ccvInstance: ReturnType<typeof ColorChannelVisualizer> | null = null;
+try {
+  ccvInstance = initColorChannelVisualizer({
+    containerId: 'ccv-container',
+    colorSpace: 'CMYK',
+    initialValues: { c: 100, m: 0, y: 0, k: 0 },
+    showPreview: true,
+    onCCVChange: (vals) => {
+      const c = vals.c ?? 0;
+      const m = vals.m ?? 0;
+      const y = vals.y ?? 0;
+      const k = vals.k ?? 0;
+      (window as any).updatePoint?.(c, m, y, k, `CMYK(${c}%, ${m}%, ${y}%, ${k}%)`);
+    },
+  });
+} catch (_) {}
+
 (window as any).updatePoint = (c: number, m: number, y: number, k: number, label?: string) => {
   const [r, g, b] = cmykToRgb(c, m, y, k);
   const hexColor = `#${[r, g, b]
@@ -67,6 +85,7 @@ visualizer.render(cmykPreset);
   };
 
   visualizer.render(newPreset);
+  if (ccvInstance) ccvInstance.setValues({ c, m, y, k });
 };
 
 window.addEventListener('resize', () => {

@@ -3,8 +3,9 @@
  * Shows RGB gamut and a point in the color space
  */
 
-import { ColorVisualizer, RGB_COLOR_SPACE } from '../index';
+import { ColorVisualizer, RGB_COLOR_SPACE, ColorChannelVisualizer } from '../index';
 import { PresetConfig } from '../types';
+import { initColorChannelVisualizer } from './initColorChannelVisualizer';
 
 // Get container element
 const container = document.getElementById('chromaticity-visualizer');
@@ -59,8 +60,28 @@ const visualizer = new ColorVisualizer(container, {
 // Render the chromaticity diagram
 visualizer.render(chromaticityPreset);
 
+let ccvInstance: ReturnType<typeof ColorChannelVisualizer> | null = null;
+try {
+  ccvInstance = initColorChannelVisualizer({
+    containerId: 'ccv-container',
+    colorSpace: 'RGB',
+    initialValues: { r: 255, g: 0, b: 0 },
+    showPreview: true,
+    onCCVChange: (vals) => {
+      const t0 = performance.now();
+      const r = vals.r ?? 0;
+      const g = vals.g ?? 0;
+      const b = vals.b ?? 0;
+      (window as any).updatePoint?.(r, g, b, `RGB(${r}, ${g}, ${b})`);
+      console.log(`[chromaticity-demo] onCCVChange -> updatePoint: ${(performance.now() - t0).toFixed(2)}ms`);
+    },
+  });
+} catch (_) {}
+
 // Make functions available globally for interactive demos
 (window as any).updatePoint = (r: number, g: number, b: number, label?: string) => {
+  const t0 = performance.now();
+  console.warn('[chromaticity-demo] updatePoint START → about to visualizer.render()');
   const hexColor = `#${[r, g, b]
     .map((x) => Math.round(x).toString(16).padStart(2, '0'))
     .join('')}`;
@@ -77,6 +98,10 @@ visualizer.render(chromaticityPreset);
   };
 
   visualizer.render(newPreset);
+  const t1 = performance.now();
+  console.warn(`[chromaticity-demo] updatePoint: visualizer.render() DONE in ${(t1 - t0).toFixed(0)}ms`);
+  if (ccvInstance) ccvInstance.setValues({ r, g, b });
+  console.log(`[chromaticity-demo] updatePoint: setValues: ${(performance.now() - t1).toFixed(2)}ms, total: ${(performance.now() - t0).toFixed(2)}ms`);
 };
 
 // Handle window resize

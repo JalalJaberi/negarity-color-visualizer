@@ -3,9 +3,10 @@
  * Shows Hue vs Saturation at a fixed Lightness
  */
 
-import { ColorVisualizer, HSL_COLOR_SPACE } from '../index';
+import { ColorVisualizer, HSL_COLOR_SPACE, ColorChannelVisualizer } from '../index';
 import { PresetConfig } from '../types';
 import { hslToRgb } from '../utils/colorConversion';
+import { initColorChannelVisualizer } from './initColorChannelVisualizer';
 
 // Get container element
 const container = document.getElementById('hsl-visualizer');
@@ -60,8 +61,31 @@ const visualizer = new ColorVisualizer(container, {
 // Render the HSL diagram
 visualizer.render(hslPreset);
 
+// Initialize Color Channel Visualizer and sync with updatePoint
+let ccvInstance: ReturnType<typeof ColorChannelVisualizer> | null = null;
+try {
+  ccvInstance = initColorChannelVisualizer({
+    containerId: 'ccv-container',
+    colorSpace: 'HSL',
+    initialValues: { h: 0, s: 100, l: 50 },
+    showPreview: true,
+    onCCVChange: (vals) => {
+      const t0 = performance.now();
+      const h = vals.h ?? 0;
+      const s = vals.s ?? 100;
+      const l = vals.l ?? 50;
+      (window as any).updatePoint?.(h, s, l, `HSL(${h}, ${s}%, ${l}%)`);
+      console.log(`[hsl-2d-demo] onCCVChange -> updatePoint: ${(performance.now() - t0).toFixed(2)}ms`);
+    },
+  });
+} catch (_) {
+  // CCV not available
+}
+
 // Make functions available globally for interactive demos
 (window as any).updatePoint = (h: number, s: number, l: number, label?: string) => {
+  const t0 = performance.now();
+  console.warn('[hsl-2d-demo] updatePoint START → about to visualizer.render()');
   const [r, g, b] = hslToRgb(h, s, l);
   const hexColor = `#${[r, g, b]
     .map((x) => Math.round(x).toString(16).padStart(2, '0'))
@@ -79,6 +103,10 @@ visualizer.render(hslPreset);
   };
 
   visualizer.render(newPreset);
+  const t1 = performance.now();
+  console.warn(`[hsl-2d-demo] updatePoint: visualizer.render() DONE in ${(t1 - t0).toFixed(0)}ms`);
+  if (ccvInstance) ccvInstance.setValues({ h, s, l });
+  console.log(`[hsl-2d-demo] updatePoint: setValues: ${(performance.now() - t1).toFixed(2)}ms, total: ${(performance.now() - t0).toFixed(2)}ms`);
 };
 
 (window as any).updateLightness = (l: number) => {

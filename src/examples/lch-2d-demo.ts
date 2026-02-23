@@ -3,9 +3,10 @@
  * Shows CIE chromaticity diagram (same as Lab/XYZ)
  */
 
-import { ColorVisualizer, LCH_COLOR_SPACE } from '../index';
+import { ColorVisualizer, LCH_COLOR_SPACE, ColorChannelVisualizer } from '../index';
 import { PresetConfig } from '../types';
 import { lchToLab, labToRgb, rgbToLab, rgbToXyz, xyzToLab } from '../utils/colorConversion';
+import { initColorChannelVisualizer } from './initColorChannelVisualizer';
 
 const container = document.getElementById('lch-visualizer');
 if (!container) {
@@ -49,6 +50,22 @@ const visualizer = new ColorVisualizer(container, {
 
 visualizer.render(lchPreset);
 
+let ccvInstance: ReturnType<typeof ColorChannelVisualizer> | null = null;
+try {
+  ccvInstance = initColorChannelVisualizer({
+    containerId: 'ccv-container',
+    colorSpace: 'LCH',
+    initialValues: { L: 50, C: 0, h: 0 },
+    showPreview: true,
+    onCCVChange: (vals) => {
+      const L = vals.L ?? 50;
+      const C = vals.C ?? 0;
+      const h = vals.h ?? 0;
+      (window as any).updatePoint?.(L, C, h, `LCh(${L.toFixed(1)}, ${C.toFixed(1)}, ${h.toFixed(1)}°)`);
+    },
+  });
+} catch (_) {}
+
 (window as any).updatePoint = (l: number, c: number, h: number, label?: string) => {
   // Convert LCh to Lab, then to RGB for display
   const [l_lab, a, b] = lchToLab(l, c, h);
@@ -67,6 +84,7 @@ visualizer.render(lchPreset);
   };
 
   visualizer.render(newPreset);
+  if (ccvInstance) ccvInstance.setValues({ L: l, C: c, h });
 };
 
 window.addEventListener('resize', () => {

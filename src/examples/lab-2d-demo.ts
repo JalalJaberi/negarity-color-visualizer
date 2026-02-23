@@ -3,9 +3,10 @@
  * Shows a* vs b* plane
  */
 
-import { ColorVisualizer, LAB_COLOR_SPACE } from '../index';
+import { ColorVisualizer, LAB_COLOR_SPACE, ColorChannelVisualizer } from '../index';
 import { PresetConfig } from '../types';
 import { labToRgb, rgbToLab, rgbToXyz, xyzToLab } from '../utils/colorConversion';
+import { initColorChannelVisualizer } from './initColorChannelVisualizer';
 
 const container = document.getElementById('lab-visualizer');
 if (!container) {
@@ -49,6 +50,22 @@ const visualizer = new ColorVisualizer(container, {
 
 visualizer.render(labPreset);
 
+let ccvInstance: ReturnType<typeof ColorChannelVisualizer> | null = null;
+try {
+  ccvInstance = initColorChannelVisualizer({
+    containerId: 'ccv-container',
+    colorSpace: 'LAB',
+    initialValues: { L: 50, a: 0, b: 0 },
+    showPreview: true,
+    onCCVChange: (vals) => {
+      const L = vals.L ?? 50;
+      const a = vals.a ?? 0;
+      const b = vals.b ?? 0;
+      (window as any).updatePoint?.(L, a, b, `Lab(${L.toFixed(1)}, ${a.toFixed(1)}, ${b.toFixed(1)})`);
+    },
+  });
+} catch (_) {}
+
 (window as any).updatePoint = (l: number, a: number, b: number, label?: string) => {
   // Convert Lab to RGB for display
   const [r, g, b_rgb] = labToRgb(l, a, b);
@@ -66,6 +83,7 @@ visualizer.render(labPreset);
   };
 
   visualizer.render(newPreset);
+  if (ccvInstance) ccvInstance.setValues({ L: l, a, b });
 };
 
 window.addEventListener('resize', () => {

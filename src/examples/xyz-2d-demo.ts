@@ -3,9 +3,10 @@
  * Shows xy chromaticity diagram (same as RGB)
  */
 
-import { ColorVisualizer, XYZ_COLOR_SPACE } from '../index';
+import { ColorVisualizer, XYZ_COLOR_SPACE, ColorChannelVisualizer } from '../index';
 import { PresetConfig } from '../types';
 import { xyzToRgb } from '../utils/colorConversion';
+import { initColorChannelVisualizer } from './initColorChannelVisualizer';
 
 const container = document.getElementById('xyz-visualizer');
 if (!container) {
@@ -52,6 +53,22 @@ const visualizer = new ColorVisualizer(container, {
 
 visualizer.render(xyzPreset);
 
+let ccvInstance: ReturnType<typeof ColorChannelVisualizer> | null = null;
+try {
+  ccvInstance = initColorChannelVisualizer({
+    containerId: 'ccv-container',
+    colorSpace: 'XYZ',
+    initialValues: { x: 24.0, y: 18.0, z: 3.0 },
+    showPreview: true,
+    onCCVChange: (vals) => {
+      const x = vals.x ?? 0;
+      const y = vals.y ?? 0;
+      const z = vals.z ?? 0;
+      (window as any).updatePoint?.(x, y, z, `XYZ(${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)})`);
+    },
+  });
+} catch (_) {}
+
 (window as any).updatePoint = (x: number, y: number, z: number, label?: string) => {
   // Convert XYZ to RGB for display
   const [r, g, b] = xyzToRgb(x, y, z);
@@ -69,6 +86,7 @@ visualizer.render(xyzPreset);
   };
 
   visualizer.render(newPreset);
+  if (ccvInstance) ccvInstance.setValues({ x, y, z });
 };
 
 window.addEventListener('resize', () => {

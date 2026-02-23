@@ -3,9 +3,10 @@
  * Shows Hue wheel
  */
 
-import { ColorVisualizer, HSV_COLOR_SPACE } from '../index';
+import { ColorVisualizer, HSV_COLOR_SPACE, ColorChannelVisualizer } from '../index';
 import { PresetConfig } from '../types';
 import { hsvToRgb } from '../utils/colorConversion';
+import { initColorChannelVisualizer } from './initColorChannelVisualizer';
 
 const container = document.getElementById('hsv-visualizer');
 if (!container) {
@@ -49,6 +50,22 @@ const visualizer = new ColorVisualizer(container, {
 
 visualizer.render(hsvPreset);
 
+let ccvInstance: ReturnType<typeof ColorChannelVisualizer> | null = null;
+try {
+  ccvInstance = initColorChannelVisualizer({
+    containerId: 'ccv-container',
+    colorSpace: 'HSV',
+    initialValues: { h: 0, s: 100, v: 100 },
+    showPreview: true,
+    onCCVChange: (vals) => {
+      const h = vals.h ?? 0;
+      const s = vals.s ?? 100;
+      const v = vals.v ?? 100;
+      (window as any).updatePoint?.(h, s, v, `HSV(${h}, ${s}%, ${v}%)`);
+    },
+  });
+} catch (_) {}
+
 (window as any).updatePoint = (h: number, s: number, v: number, label?: string) => {
   const [r, g, b] = hsvToRgb(h, s, v);
   const hexColor = `#${[r, g, b]
@@ -67,6 +84,7 @@ visualizer.render(hsvPreset);
   };
 
   visualizer.render(newPreset);
+  if (ccvInstance) ccvInstance.setValues({ h, s, v });
 };
 
 window.addEventListener('resize', () => {

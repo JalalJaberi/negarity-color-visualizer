@@ -1,0 +1,147 @@
+/* Color Channel Visualizer - slider styles */
+.negarity-ccv {
+  --ccv-track-h: 24px;
+  --ccv-thumb-size: 20px;
+  --ccv-radius: 4px;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.negarity-ccv__preview {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--ccv-radius);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+.negarity-ccv__sliders {
+  flex: 1;
+  min-width: 0;
+}
+
+.negarity-ccv-slider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.negarity-ccv-slider__label {
+  width: 36px;
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.negarity-ccv-slider__track-wrap {
+  position: relative;
+  flex: 1;
+  height: var(--ccv-track-h);
+  min-width: 80px;
+}
+
+.negarity-ccv-slider__track {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--ccv-radius);
+  cursor: pointer;
+}
+
+.negarity-ccv-slider__track-circular {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  cursor: pointer;
+  display: block;
+}
+
+.negarity-ccv-slider--circular .negarity-ccv-slider__track-wrap,
+.negarity-ccv-slider--circularDependent .negarity-ccv-slider__track-wrap {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+  flex: 0 0 auto;
+}
+
+.negarity-ccv-slider--circular .negarity-ccv-slider__track,
+.negarity-ccv-slider--circularDependent .negarity-ccv-slider__track {
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+}
+
+/* Dependent sliders (e.g. HSL S/L): default so track is visible; JS sets gradient from getDependentGradient */
+.negarity-ccv-slider--dependent2 .negarity-ccv-slider__track,
+.negarity-ccv-slider--dependent3 .negarity-ccv-slider__track {
+  background: #e0e0e0;
+  background-image: linear-gradient(to right, #808080, #c0c0c0);
+}
+
+.negarity-ccv-slider__thumb {
+  position: absolute;
+  width: var(--ccv-thumb-size);
+  height: var(--ccv-thumb-size);
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #333;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  margin-left: -10px;
+}
+
+.negarity-ccv-slider__value {
+  min-width: 52px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.negarity-ccv-slider__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+  clip: rect(0, 0, 0, 0);
+}
+
+.negarity-ccv--layout-vertical {
+  display: flex;
+  flex-direction: column;
+}
+
+.negarity-ccv--with-preview {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.negarity-ccv--with-preview .negarity-ccv__sliders {
+  flex: 1;
+}
+
+.negarity-visualizer-with-channels {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .negarity-visualizer-with-channels {
+    flex-direction: column;
+  }
+}
+
+.negarity-visualizer-with-channels .negarity-color-visualizer-container {
+  flex: 1 1 min(400px, 100%);
+  min-width: 0;
+}
+
+.negarity-visualizer-with-channels .negarity-ccv-next-to-canvas {
+  flex: 0 1 320px;
+  min-width: 0;
+}

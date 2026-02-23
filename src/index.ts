@@ -11,3 +11,12 @@ export * from './presets';
 
 // Re-export for convenience
 export { RGB_CUBE_PRESET, RGB_COLOR_SPACE, HSL_COLOR_SPACE, LAB_COLOR_SPACE } from './presets';
+
+// Color Channel Visualizer (sliders for each channel)
+export {
+  ColorChannelVisualizer,
+  getColorSpace as getColorSpaceChannel,
+  getValuesForSpace as getValuesForSpaceChannel,
+  valuesToHex as valuesToHexChannel,
+} from './color-channel-visualizer';
+export type { ColorChannelVisualizerOptions, ColorChannelVisualizerInstance } from './color-channel-visualizer';
