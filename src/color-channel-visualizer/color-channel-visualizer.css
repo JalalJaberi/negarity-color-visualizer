@@ -83,14 +83,18 @@
   position: absolute;
   width: var(--ccv-thumb-size);
   height: var(--ccv-thumb-size);
-  border-radius: 50%;
+  border-radius: var(--ccv-radius);
   background: #fff;
   border: 2px solid #333;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: grab;
   top: 50%;
-  transform: translate(-50%, -50%);
-  margin-left: -10px;
+  transform: translateY(-50%);
+}
+
+.negarity-ccv-slider__thumb:active {
+  cursor: grabbing;
 }
 
 .negarity-ccv-slider__value {

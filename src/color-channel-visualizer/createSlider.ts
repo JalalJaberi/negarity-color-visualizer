@@ -104,6 +104,9 @@ export function createChannelSlider(
 
   const isCircular = channelDef.type === CHANNEL_TYPES.CIRCULAR || channelDef.type === CHANNEL_TYPES.CIRCULAR_DEPENDENT;
   let circularCanvas: HTMLCanvasElement | null = null;
+  const COMMIT_DELAY_MS = 500; // Only notify parent (e.g. update diagram) after user stops changing value for this long
+  let commitTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
   if (channelDef.type === CHANNEL_TYPES.CIRCULAR_DEPENDENT) {
     circularCanvas = document.createElement('canvas');
     circularCanvas.className = 'negarity-ccv-slider__track-circular';
@@ -132,12 +135,11 @@ export function createChannelSlider(
     }
     // Same angle convention as click: 0 = top, clockwise. value 0..range maps to angle 0..2π with thumbAngle = (value-min)/range * 2π - π/2
     const thumbAngle = ((value - min) / range) * 2 * Math.PI - Math.PI / 2;
-    // With transform: translate(-50%, -50%), left/top are the center position. Compensate for CSS margin-left: -10px.
-    const marginLeft = 10; // match .negarity-ccv-slider__thumb { margin-left: -10px }
-    const leftPx = cx + r * Math.cos(thumbAngle) - marginLeft;
-    const topPx = cy + r * Math.sin(thumbAngle);
-    thumb.style.left = leftPx + 'px';
-    thumb.style.top = topPx + 'px';
+    const centerX = cx + r * Math.cos(thumbAngle);
+    const centerY = cy + r * Math.sin(thumbAngle);
+    const thumbW = thumb.offsetWidth;
+    thumb.style.left = (centerX - thumbW / 2) + 'px';
+    thumb.style.top = centerY + 'px';
   }
 
   function drawCircularDependentGradient(): void {
@@ -212,18 +214,43 @@ export function createChannelSlider(
       return;
     }
     const p = (value - min) / (range || 1);
-    thumb.style.left = p * 100 + '%';
+    const trackW = trackWrap.offsetWidth;
+    const thumbW = thumb.offsetWidth;
+    if (trackW <= 0 || thumbW <= 0) {
+      requestAnimationFrame(() => {
+        const tw = trackWrap.offsetWidth;
+        const th = thumb.offsetWidth;
+        const maxLeft = tw - th;
+        thumb.style.left = (maxLeft > 0 ? (p * maxLeft / tw * 100) : p * 100) + '%';
+      });
+      return;
+    }
+    const maxLeft = trackW - thumbW;
+    thumb.style.left = (maxLeft > 0 ? (p * maxLeft / trackW * 100) : p * 100) + '%';
   }
 
-  function notifyChange(newVal: number): void {
-    console.log('[CCV] slider input', channelDef.key, '=', newVal);
+  /** Update local value and UI only; does not call onChange. */
+  function setValueLocal(newVal: number): void {
     value = clamp(newVal, min, max);
     input.value = String(value);
     input.setAttribute('aria-valuenow', String(value));
     input.setAttribute('aria-valuetext', formatValue(value, channelDef));
     valueEl.textContent = formatValue(value, channelDef);
     updateThumbPosition();
-    onChange?.(value);
+  }
+
+  /** Schedule a single commit (call onChange) after COMMIT_DELAY_MS. Resets timer on each call. */
+  function scheduleCommit(): void {
+    if (commitTimeoutId != null) clearTimeout(commitTimeoutId);
+    commitTimeoutId = setTimeout(() => {
+      commitTimeoutId = null;
+      onChange?.(value);
+    }, COMMIT_DELAY_MS);
+  }
+
+  function notifyChange(newVal: number): void {
+    setValueLocal(newVal);
+    scheduleCommit();
   }
 
   function onTrackClick(e: MouseEvent): void {
@@ -233,17 +260,8 @@ export function createChannelSlider(
       const cx = rect.left + rect.width / 2;
       const cy = rect.top + rect.height / 2;
       const atan2Angle = Math.atan2(e.clientY - cy, e.clientX - cx);
-      let angle = (atan2Angle + Math.PI / 2 + 2 * Math.PI) % (2 * Math.PI);
+      const angle = (atan2Angle + Math.PI / 2 + 2 * Math.PI) % (2 * Math.PI);
       const newVal = min + (angle / (2 * Math.PI)) * range;
-      console.log('[CCV hue circle click]', {
-        click: { x: e.clientX, y: e.clientY },
-        trackWrap: { left: rect.left, top: rect.top, width: rect.width, height: rect.height },
-        center: { cx, cy },
-        atan2Rad: atan2Angle,
-        angleRad: angle,
-        angleDeg: (angle * 180 / Math.PI).toFixed(1),
-        newVal: Math.round(newVal * 10) / 10,
-      });
       notifyChange(newVal);
       return;
     }
@@ -255,6 +273,39 @@ export function createChannelSlider(
   track.addEventListener('click', onTrackClick);
   input.addEventListener('input', () => notifyChange(parseFloat(input.value)));
   input.addEventListener('change', () => notifyChange(parseFloat(input.value)));
+
+  // Thumb drag: smooth movement, commit after COMMIT_DELAY_MS of no movement
+  function valueFromPageCoords(clientX: number, clientY: number): number {
+    if (isCircular) {
+      const rect = trackWrap.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const atan2Angle = Math.atan2(clientY - cy, clientX - cx);
+      const angle = (atan2Angle + Math.PI / 2 + 2 * Math.PI) % (2 * Math.PI);
+      return min + (angle / (2 * Math.PI)) * range;
+    }
+    const rect = track.getBoundingClientRect();
+    const p = (clientX - rect.left) / rect.width;
+    return min + p * range;
+  }
+
+  function onThumbMouseDown(e: MouseEvent): void {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const onMove = (e2: MouseEvent) => {
+      const newVal = valueFromPageCoords(e2.clientX, e2.clientY);
+      setValueLocal(newVal);
+      scheduleCommit();
+    };
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }
+  thumb.addEventListener('mousedown', onThumbMouseDown);
 
   if (isCircular && circularCanvas) {
     circularCanvas.addEventListener('click', (e: MouseEvent) => {
@@ -278,19 +329,16 @@ export function createChannelSlider(
       return value;
     },
     setValue(v: number) {
-      value = clamp(v, min, max);
-      input.value = String(value);
-      input.setAttribute('aria-valuenow', String(value));
-      input.setAttribute('aria-valuetext', formatValue(value, channelDef));
-      valueEl.textContent = formatValue(value, channelDef);
-      updateThumbPosition();
+      setValueLocal(v);
     },
     updateGradient() {
       updateTrackGradient();
       updateThumbPosition();
     },
     destroy() {
+      if (commitTimeoutId != null) clearTimeout(commitTimeoutId);
       track.removeEventListener('click', onTrackClick);
+      thumb.removeEventListener('mousedown', onThumbMouseDown);
       wrap.remove();
     },
   };
