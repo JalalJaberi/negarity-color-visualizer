@@ -18,6 +18,7 @@
 .negarity-ccv__sliders {
   flex: 1;
   min-width: 0;
+  width: 100%;
 }
 
 .negarity-ccv-slider {
