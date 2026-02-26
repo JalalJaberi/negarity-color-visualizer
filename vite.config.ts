@@ -1,6 +1,25 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 import dts from 'vite-plugin-dts';
+import { copyFileSync, existsSync } from 'fs';
+
+// Copy images to dist (next to UMD) so getAssetBaseUrl() can resolve them
+function copyAssetsPlugin() {
+  return {
+    name: 'copy-assets',
+    closeBundle() {
+      const dist = resolve(__dirname, 'dist');
+      const src = resolve(__dirname, 'src/assets/images');
+      ['circle.png', 'horseshoe.png'].forEach((file) => {
+        const from = resolve(src, file);
+        const to = resolve(dist, file);
+        if (existsSync(from)) {
+          copyFileSync(from, to);
+        }
+      });
+    },
+  };
+}
 
 export default defineConfig({
   // Development server config
@@ -28,6 +47,7 @@ export default defineConfig({
     sourcemap: true,
   },
   plugins: [
+    copyAssetsPlugin(),
     dts({
       insertTypesEntry: true,
       include: ['src/**/*'],

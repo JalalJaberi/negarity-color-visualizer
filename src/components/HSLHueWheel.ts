@@ -7,6 +7,7 @@
 import Konva from 'konva';
 import { HSLHueWheelConfig } from './types';
 import { hslToRgb } from '../utils/colorConversion';
+import { getDefaultCircleImageUrl } from '../utils/assetUrls';
 
 export class HSLHueWheel {
   private layer: Konva.Layer | null = null;
@@ -90,7 +91,8 @@ export class HSLHueWheel {
     const showDividers = this.config.showDividers ?? false;
     const algorithm = this.config.algorithm ?? 'wedges';
 
-    if (algorithm === 'image' && this.config.imageUrl && this.renderImage(innerRadius)) {
+    const imageUrl = this.config.imageUrl || getDefaultCircleImageUrl();
+    if (algorithm === 'image' && imageUrl && this.renderImage(innerRadius, imageUrl)) {
       this.layer.draw();
       return;
     }
@@ -133,7 +135,7 @@ export class HSLHueWheel {
    * Applies lightness (0-100): L=0 black, L=50 normal, L=100 white
    * Returns true if image was used
    */
-  private renderImage(_innerRadius: number): boolean {
+  private renderImage(_innerRadius: number, imageUrl: string): boolean {
     const cx = this.centerX;
     const cy = this.centerY;
     const outerR = this.radius;
@@ -160,7 +162,7 @@ export class HSLHueWheel {
       this.shapes.push(konvaImage);
       this.layer!.draw();
     };
-    img.src = this.config.imageUrl!;
+    img.src = imageUrl;
     return true;
   }
 
@@ -172,8 +174,13 @@ export class HSLHueWheel {
     const cx = this.centerX;
     const cy = this.centerY;
     const outerR = this.radius;
+    const d = outerR * 2;
 
     const shape = new Konva.Shape({
+      x: cx - outerR,
+      y: cy - outerR,
+      width: d,
+      height: d,
       sceneFunc: (_context, shape) => {
         const canvas = shape.getLayer()?.getCanvas()._canvas;
         const ctx = canvas?.getContext('2d');
@@ -181,7 +188,9 @@ export class HSLHueWheel {
           return;
         }
         const createConic = (ctx as any).createConicGradient.bind(ctx);
-        const gradient = createConic(-Math.PI / 2, cx, cy);
+        const localCx = outerR;
+        const localCy = outerR;
+        const gradient = createConic(-Math.PI / 2, localCx, localCy);
         const stops = 36;
         for (let i = 0; i <= stops; i++) {
           const hue = (i / stops) * 360;
@@ -190,9 +199,9 @@ export class HSLHueWheel {
         }
         ctx.save();
         ctx.beginPath();
-        ctx.arc(cx, cy, outerR, 0, 2 * Math.PI);
+        ctx.arc(localCx, localCy, outerR, 0, 2 * Math.PI);
         if (innerRadius > 0) {
-          ctx.arc(cx, cy, innerRadius, 2 * Math.PI, 0, true);
+          ctx.arc(localCx, localCy, innerRadius, 2 * Math.PI, 0, true);
         }
         ctx.fillStyle = gradient;
         ctx.fill();

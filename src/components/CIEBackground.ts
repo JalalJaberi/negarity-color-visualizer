@@ -5,6 +5,7 @@
 
 import Konva from 'konva';
 import { getSpectralLocus, xyToRgb } from '../utils/colorConversion';
+import { getDefaultHorseshoeImageUrl } from '../utils/assetUrls';
 import { CIEBackgroundConfig, CoordinateSystem } from './types';
 
 export class CIEBackground {
@@ -63,8 +64,9 @@ export class CIEBackground {
 
     const { offsetX, offsetY, scale, maxX, maxY } = this.coordinateSystem;
 
-    if (this.config.useImage && this.config.imageUrl) {
-      this.renderImage(offsetX, offsetY, scale, maxX, maxY);
+    const imageUrl = this.config.imageUrl || getDefaultHorseshoeImageUrl();
+    if (this.config.useImage && imageUrl) {
+      this.renderImage(offsetX, offsetY, scale, maxX, maxY, imageUrl);
       return;
     }
     const brightness = this.config.brightness ?? 1.0;
@@ -187,7 +189,7 @@ export class CIEBackground {
   /**
    * Render using pre-rendered horseshoe image
    */
-  private renderImage(offsetX: number, offsetY: number, scale: number, maxX: number, maxY: number): void {
+  private renderImage(offsetX: number, offsetY: number, scale: number, maxX: number, maxY: number, imageUrl: string): void {
     const w = maxX * scale;
     const h = maxY * scale;
     const x = offsetX;
@@ -207,7 +209,7 @@ export class CIEBackground {
       konvaImage.moveToBottom();
       this.layer!.draw();
     };
-    img.src = this.config.imageUrl!;
+    img.src = imageUrl;
   }
 
   /**
