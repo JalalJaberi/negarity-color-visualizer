@@ -1,6 +1,7 @@
 /**
  * HSV Hue Wheel Component
  * Renders a circular hue wheel with configurable saturation and value
+ * Supports two algorithms: 'wedges' (default) = pie segments, 'conic' = smooth canvas conic gradient
  */
 
 import Konva from 'konva';
@@ -14,7 +15,7 @@ export class HSVHueWheel {
   private centerY: number = 0;
   private radius: number = 0;
   private initialized: boolean = false;
-  private shapes: Konva.Wedge[] = [];
+  private shapes: Konva.Node[] = [];
 
   /**
    * Initialize the component
@@ -40,6 +41,8 @@ export class HSVHueWheel {
         value: 100,
         innerRadius: 0, // 0 = complete circle, no hole
         showDividers: false, // No dividing lines
+        segmentCount: 360, // Quality: number of hue segments (wedges only)
+        algorithm: 'wedges', // 'wedges' | 'conic'
         dividerStyle: {
           weight: 1,
           color: '#333',
@@ -85,12 +88,23 @@ export class HSVHueWheel {
     const value = this.config.value ?? 100;
     const innerRadius = (this.config.innerRadius ?? 0) * this.radius;
     const showDividers = this.config.showDividers ?? false;
+    const algorithm = this.config.algorithm ?? 'wedges';
 
-    // Create hue wheel using multiple segments for smooth gradient
-    const segmentAngle = 1; // 1 degree per segment for smooth appearance
-    const numSegments = 360 / segmentAngle;
+    if (algorithm === 'image' && this.config.imageUrl && this.renderImage(innerRadius)) {
+      this.layer.draw();
+      return;
+    }
 
-    for (let i = 0; i < numSegments; i++) {
+    if (algorithm === 'conic' && this.renderConicGradient(saturation, value, innerRadius)) {
+      this.layer.draw();
+      return;
+    }
+
+    // Wedges algorithm (default)
+    const segmentCount = Math.min(720, Math.max(36, this.config.segmentCount ?? 360));
+    const segmentAngle = 360 / segmentCount;
+
+    for (let i = 0; i < segmentCount; i++) {
       const hue = i * segmentAngle;
       const [r, g, b] = hsvToRgb(hue, saturation, value);
       const color = `rgb(${r}, ${g}, ${b})`;
@@ -112,6 +126,83 @@ export class HSVHueWheel {
     }
     
     this.layer.draw();
+  }
+
+  /**
+   * Render using pre-rendered circle/hue wheel image
+   * Applies value (0-100): V=0 black, V=100 full color
+   * Returns true if image was used
+   */
+  private renderImage(_innerRadius: number): boolean {
+    const cx = this.centerX;
+    const cy = this.centerY;
+    const outerR = this.radius;
+    const value = this.config.value ?? 100;
+    // Map HSV value 0-100 to Konva Brighten -1..1: V=0→-1 (black), V=100→0 (no change)
+    const brightness = Math.max(-1, Math.min(0, value / 100 - 1));
+
+    const img = new Image();
+    img.onload = () => {
+      const w = outerR * 2;
+      const h = outerR * 2;
+      const konvaImage = new Konva.Image({
+        x: cx - outerR,
+        y: cy - outerR,
+        image: img,
+        width: w,
+        height: h,
+      });
+      konvaImage.cache();
+      konvaImage.filters([Konva.Filters.Brighten]);
+      konvaImage.brightness(brightness);
+      this.layer!.add(konvaImage);
+      konvaImage.moveToBottom();
+      this.shapes.push(konvaImage);
+      this.layer!.draw();
+    };
+    img.src = this.config.imageUrl!;
+    return true;
+  }
+
+  /**
+   * Render using canvas conic gradient (smooth, CSS-like quality)
+   * Returns true if conic gradient was used, false if falling back to wedges
+   */
+  private renderConicGradient(saturation: number, value: number, innerRadius: number): boolean {
+    const cx = this.centerX;
+    const cy = this.centerY;
+    const outerR = this.radius;
+
+    const shape = new Konva.Shape({
+      sceneFunc: (_context, shape) => {
+        const canvas = shape.getLayer()?.getCanvas()._canvas;
+        const ctx = canvas?.getContext('2d');
+        if (!ctx || typeof (ctx as any).createConicGradient !== 'function') {
+          return;
+        }
+        const createConic = (ctx as any).createConicGradient.bind(ctx);
+        const gradient = createConic(-Math.PI / 2, cx, cy);
+        const stops = 36;
+        for (let i = 0; i <= stops; i++) {
+          const hue = (i / stops) * 360;
+          const [r, g, b] = hsvToRgb(hue, saturation, value);
+          gradient.addColorStop(i / stops, `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`);
+        }
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, outerR, 0, 2 * Math.PI);
+        if (innerRadius > 0) {
+          ctx.arc(cx, cy, innerRadius, 2 * Math.PI, 0, true);
+        }
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        ctx.restore();
+      },
+    });
+
+    this.layer!.add(shape);
+    this.shapes.push(shape);
+    return true;
   }
 
   /**

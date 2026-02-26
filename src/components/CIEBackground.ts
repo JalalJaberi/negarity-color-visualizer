@@ -62,6 +62,11 @@ export class CIEBackground {
     }
 
     const { offsetX, offsetY, scale, maxX, maxY } = this.coordinateSystem;
+
+    if (this.config.useImage && this.config.imageUrl) {
+      this.renderImage(offsetX, offsetY, scale, maxX, maxY);
+      return;
+    }
     const brightness = this.config.brightness ?? 1.0;
     const opacity = this.config.opacity ?? 1.0;
     const gridSize = this.config.gridSize ?? 200;
@@ -177,6 +182,32 @@ export class CIEBackground {
     }
 
     return inside;
+  }
+
+  /**
+   * Render using pre-rendered horseshoe image
+   */
+  private renderImage(offsetX: number, offsetY: number, scale: number, maxX: number, maxY: number): void {
+    const w = maxX * scale;
+    const h = maxY * scale;
+    const x = offsetX;
+    const y = offsetY - h;
+    const opacity = this.config.opacity ?? 1.0;
+    const img = new Image();
+    img.onload = () => {
+      const konvaImage = new Konva.Image({
+        x,
+        y,
+        image: img,
+        width: w,
+        height: h,
+        opacity,
+      });
+      this.layer!.add(konvaImage);
+      konvaImage.moveToBottom();
+      this.layer!.draw();
+    };
+    img.src = this.config.imageUrl!;
   }
 
   /**

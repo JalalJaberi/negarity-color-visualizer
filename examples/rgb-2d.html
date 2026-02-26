@@ -234,6 +234,10 @@
                         <span style="color:#666;font-size:12px;">default 200</span>
                     </div>
                     <div class="control-group">
+                        <label>Use image (horseshoe):</label>
+                        <input type="checkbox" id="cie-use-image" onchange="updateCIEBackground()" title="Use pre-rendered horseshoe image instead of drawing">
+                    </div>
+                    <div class="control-group">
                         <input type="checkbox" id="cie-boundary-show" onchange="updateCIEBackground()">
                     </div>
                     <div class="sub-control-group" id="cie-boundary-controls" style="display: none;">
@@ -381,12 +385,17 @@
             const brightness = parseFloat(brightnessEl.value);
             const opacity = parseFloat(opacityEl.value);
             const showBoundary = showBoundaryEl.checked;
+            const useImageEl = document.getElementById('cie-use-image');
+            const useImage = useImageEl ? useImageEl.checked : false;
+            const imageUrl = useImage && window.HORSESHOE_IMAGE_URL ? window.HORSESHOE_IMAGE_URL : undefined;
 
             const config = {
                 show: show,
                 brightness: brightness,
                 opacity: opacity,
                 gridSize: Math.min(500, Math.max(20, parseInt(document.getElementById('cie-grid-size').value, 10) || 200)),
+                useImage: useImage,
+                imageUrl: imageUrl,
                 boundaryLine: showBoundary ? {
                     weight: parseInt(document.getElementById('cie-boundary-weight').value),
                     color: document.getElementById('cie-boundary-color').value,
@@ -447,12 +456,17 @@
             const brightness = parseFloat(brightnessEl.value);
             const opacity = parseFloat(opacityEl.value);
             const showBoundary = showBoundaryEl.checked;
+            const useImageEl = document.getElementById('cie-use-image');
+            const useImage = useImageEl ? useImageEl.checked : false;
+            const imageUrl = useImage && window.HORSESHOE_IMAGE_URL ? window.HORSESHOE_IMAGE_URL : undefined;
 
             const config = {
                 show: show,
                 brightness: brightness,
                 opacity: opacity,
                 gridSize: Math.min(500, Math.max(20, parseInt(document.getElementById('cie-grid-size').value, 10) || 200)),
+                useImage: useImage,
+                imageUrl: imageUrl,
                 boundaryLine: showBoundary ? {
                     weight: parseInt(document.getElementById('cie-boundary-weight').value),
                     color: document.getElementById('cie-boundary-color').value,

@@ -4,6 +4,10 @@
  */
 
 import { ColorVisualizer, RGB_COLOR_SPACE, ColorChannelVisualizer } from '../index';
+
+if (typeof window !== 'undefined') {
+  (window as any).HORSESHOE_IMAGE_URL = new URL('../assets/images/horseshoe.png', import.meta.url).href;
+}
 import { PresetConfig } from '../types';
 import { initColorChannelVisualizer } from './initColorChannelVisualizer';
 

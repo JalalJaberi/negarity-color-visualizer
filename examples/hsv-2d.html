@@ -193,6 +193,14 @@
                 <div class="control-section">
                     <h4>HSV Hue Wheel Settings</h4>
                     <div class="control-group">
+                        <label>Draw algorithm:</label>
+                        <select id="hue-wheel-algorithm" onchange="updateHSVHueWheel()">
+                            <option value="wedges" selected>Wedges (default, 360 segments)</option>
+                            <option value="conic">Conic gradient (smooth)</option>
+                            <option value="image">Image (circle.png)</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
                         <label>Show Wheel:</label>
                         <input type="checkbox" id="hue-wheel-show" checked onchange="updateHSVHueWheel()">
                     </div>
@@ -214,6 +222,11 @@
                     <div class="control-group">
                         <label>Show Dividers:</label>
                         <input type="checkbox" id="hue-wheel-show-dividers" onchange="updateHSVHueWheel()">
+                    </div>
+                    <div class="control-group">
+                        <label>Quality (segment count):</label>
+                        <input type="number" id="hue-wheel-segment-count" min="72" max="720" value="360" onchange="updateHSVHueWheel()" title="Lower = faster, higher = smoother (default 360)">
+                        <span style="color:#666;font-size:12px;">72-720, default 360</span>
                     </div>
                 </div>
 
@@ -303,12 +316,22 @@
                 return;
             }
 
+            const segmentCountEl = document.getElementById('hue-wheel-segment-count');
+            const segmentCount = segmentCountEl ? Math.min(720, Math.max(72, parseInt(segmentCountEl.value, 10) || 360)) : 360;
+            const algorithmEl = document.getElementById('hue-wheel-algorithm');
+            const algorithmVal = algorithmEl ? algorithmEl.value : 'wedges';
+            const algorithm = algorithmVal === 'conic' ? 'conic' : (algorithmVal === 'image' ? 'image' : 'wedges');
+            const imageUrl = algorithm === 'image' && window.CIRCLE_IMAGE_URL ? window.CIRCLE_IMAGE_URL : undefined;
+
             const config = {
                 show: showEl.checked,
                 saturation: parseInt(saturationEl.value),
                 value: parseInt(valueEl.value),
                 innerRadius: parseFloat(innerRadiusEl.value),
                 showDividers: showDividersEl.checked,
+                segmentCount: segmentCount,
+                algorithm: algorithm,
+                imageUrl: imageUrl,
             };
 
             window.updateHSVHueWheelFn(config);

@@ -21,6 +21,8 @@ export interface CIEBackgroundConfig {
   opacity?: number; // 0-1, controls rectangle opacity
   boundaryLine?: LineStyle | false; // false to hide boundary line
   gridSize?: number; // resolution of the color grid (default 200)
+  useImage?: boolean; // use pre-rendered horseshoe image instead of drawing
+  imageUrl?: string; // URL of horseshoe image (required when useImage is true)
 }
 
 /**
@@ -70,6 +72,8 @@ export interface CoordinateSystem {
 /**
  * HSL Hue Wheel configuration
  */
+export type HueWheelAlgorithm = 'wedges' | 'conic' | 'image';
+
 export interface HSLHueWheelConfig {
   show?: boolean;
   saturation?: number; // 0-100, default 100
@@ -77,6 +81,9 @@ export interface HSLHueWheelConfig {
   innerRadius?: number; // 0-1, relative to outer radius, 0 = complete circle
   showDividers?: boolean; // Show lines between segments
   dividerStyle?: LineStyle;
+  segmentCount?: number; // Number of hue segments (default 360). Used only for 'wedges' algorithm.
+  algorithm?: HueWheelAlgorithm; // 'wedges' | 'conic' | 'image'
+  imageUrl?: string; // URL of hue wheel image (required when algorithm is 'image')
 }
 
 /**
@@ -89,6 +96,9 @@ export interface HSVHueWheelConfig {
   innerRadius?: number; // 0-1, relative to outer radius, 0 = complete circle
   showDividers?: boolean; // Show lines between segments
   dividerStyle?: LineStyle;
+  segmentCount?: number; // Number of hue segments (default 360). Used only for 'wedges' algorithm.
+  algorithm?: HueWheelAlgorithm; // 'wedges' | 'conic' | 'image'
+  imageUrl?: string; // URL of hue wheel image (required when algorithm is 'image')
 }
 
 /**

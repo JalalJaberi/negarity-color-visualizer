@@ -288,6 +288,9 @@ export class Renderer2D implements IRenderer {
         lightness: defaultLightness,
         innerRadius: wheelConfig.innerRadius !== undefined ? wheelConfig.innerRadius : (existingConfig.innerRadius ?? 0), // 0 = complete circle, no hole
         showDividers: wheelConfig.showDividers !== undefined ? wheelConfig.showDividers : (existingConfig.showDividers ?? false), // No dividing lines
+        segmentCount: wheelConfig.segmentCount !== undefined ? wheelConfig.segmentCount : (existingConfig.segmentCount ?? 360),
+        algorithm: wheelConfig.algorithm !== undefined ? wheelConfig.algorithm : (existingConfig.algorithm ?? 'wedges'),
+        imageUrl: wheelConfig.imageUrl !== undefined ? wheelConfig.imageUrl : existingConfig.imageUrl,
         show: wheelConfig.show !== undefined ? wheelConfig.show : (existingConfig.show !== undefined ? existingConfig.show : true),
         dividerStyle: wheelConfig.dividerStyle || existingConfig.dividerStyle,
       };
@@ -298,6 +301,9 @@ export class Renderer2D implements IRenderer {
         lightness: defaultLightness,
         innerRadius: wheelConfig.innerRadius ?? 0,
         showDividers: wheelConfig.showDividers ?? false,
+        segmentCount: wheelConfig.segmentCount ?? 360,
+        algorithm: wheelConfig.algorithm ?? 'wedges',
+        imageUrl: wheelConfig.imageUrl,
         show: wheelConfig.show !== undefined ? wheelConfig.show : true,
         dividerStyle: wheelConfig.dividerStyle,
       };
@@ -445,16 +451,12 @@ export class Renderer2D implements IRenderer {
     // Get RGB gamut triangle vertices
     const vertices = getRgbGamutVertices();
 
-    // Initialize and render CIE background component
-    // Reuse existing instance if config was updated, otherwise create new
+    const cieConfig = (preset.config?.custom?.cieBackground as any) || {};
     if (!this.cieBackground) {
       this.cieBackground = new CIEBackground();
-      // First time initialization - use defaults
-      this.cieBackground.init(this.layer, coordinateSystem, size, {});
+      this.cieBackground.init(this.layer, coordinateSystem, size, cieConfig);
     } else {
-      // Component already exists - just update layer/coordinate system if needed
-      // and preserve the existing config (which may have been updated)
-      this.cieBackground.init(this.layer, coordinateSystem, size, {});
+      this.cieBackground.init(this.layer, coordinateSystem, size, cieConfig);
     }
     this.cieBackground.render();
 
@@ -739,6 +741,9 @@ export class Renderer2D implements IRenderer {
         value: defaultValue,
         innerRadius: wheelConfig.innerRadius !== undefined ? wheelConfig.innerRadius : (existingConfig.innerRadius ?? 0), // 0 = complete circle, no hole
         showDividers: wheelConfig.showDividers !== undefined ? wheelConfig.showDividers : (existingConfig.showDividers ?? false), // No dividing lines
+        segmentCount: wheelConfig.segmentCount !== undefined ? wheelConfig.segmentCount : (existingConfig.segmentCount ?? 360),
+        algorithm: wheelConfig.algorithm !== undefined ? wheelConfig.algorithm : (existingConfig.algorithm ?? 'wedges'),
+        imageUrl: wheelConfig.imageUrl !== undefined ? wheelConfig.imageUrl : existingConfig.imageUrl,
         show: wheelConfig.show !== undefined ? wheelConfig.show : (existingConfig.show !== undefined ? existingConfig.show : true),
         dividerStyle: wheelConfig.dividerStyle || existingConfig.dividerStyle,
       };
@@ -749,6 +754,9 @@ export class Renderer2D implements IRenderer {
         value: defaultValue,
         innerRadius: wheelConfig.innerRadius ?? 0,
         showDividers: wheelConfig.showDividers ?? false,
+        segmentCount: wheelConfig.segmentCount ?? 360,
+        algorithm: wheelConfig.algorithm ?? 'wedges',
+        imageUrl: wheelConfig.imageUrl,
         show: wheelConfig.show !== undefined ? wheelConfig.show : true,
         dividerStyle: wheelConfig.dividerStyle,
       };

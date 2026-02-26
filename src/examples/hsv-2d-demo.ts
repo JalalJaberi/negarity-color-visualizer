@@ -4,6 +4,10 @@
  */
 
 import { ColorVisualizer, HSV_COLOR_SPACE, ColorChannelVisualizer } from '../index';
+
+if (typeof window !== 'undefined') {
+  (window as any).CIRCLE_IMAGE_URL = new URL('../assets/images/circle.png', import.meta.url).href;
+}
 import { PresetConfig } from '../types';
 import { hsvToRgb } from '../utils/colorConversion';
 import { initColorChannelVisualizer } from './initColorChannelVisualizer';
