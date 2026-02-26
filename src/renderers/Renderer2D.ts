@@ -590,80 +590,28 @@ export class Renderer2D implements IRenderer {
 
   /**
    * Update HSL hue wheel configuration and re-render
+   * Uses full re-render to avoid duplicate shapes and ensure correct draw order (wheel below markers)
    */
   updateHSLHueWheel(config: Partial<import('../components/types').HSLHueWheelConfig>): void {
-    if (!this.hslHueWheel || !this.layer) {
-      // If hue wheel doesn't exist or layer is not available, re-render the full preset
-      if (this.currentPreset) {
-        this.render(this.currentPreset);
-      }
-      return;
-    }
-    
-    // Update the config - this will merge with existing config
-    this.hslHueWheel.updateConfig(config);
-    
-    // Re-render just the hue wheel if it's already initialized
-    try {
-      const geometry = this.hslHueWheel.getGeometry();
-      if (geometry.radius > 0) {
-        // Re-render the hue wheel with updated config
-        // The render() method will use the updated config from updateConfig()
-        this.hslHueWheel.render();
-        
-        // Also re-render the color points if they exist
-        if (this.currentPreset && this.currentPreset.points && this.currentPreset.points.length > 0) {
-          this.renderHSLColorPoints(this.currentPreset.points);
-        }
-        return;
-      }
-    } catch (e) {
-      // If there's an error, fall through to full re-render
-    }
-    
-    // Fallback: re-render the full preset
-    if (this.currentPreset) {
-      this.render(this.currentPreset);
-    }
+    if (!this.currentPreset) return;
+    // Merge new config into preset so full render uses it
+    const custom = (this.currentPreset.config?.custom as Record<string, unknown>) || {};
+    custom.hslHueWheel = { ...(custom.hslHueWheel as object || {}), ...config };
+    this.currentPreset.config = { ...this.currentPreset.config, custom };
+    this.render(this.currentPreset);
   }
 
   /**
    * Update HSV hue wheel configuration and re-render
+   * Uses full re-render to avoid duplicate shapes and ensure correct draw order (wheel below markers)
    */
   updateHSVHueWheel(config: Partial<import('../components/types').HSVHueWheelConfig>): void {
-    if (!this.hsvHueWheel || !this.layer) {
-      // If hue wheel doesn't exist or layer is not available, re-render the full preset
-      if (this.currentPreset) {
-        this.render(this.currentPreset);
-      }
-      return;
-    }
-    
-    // Update the config - this will merge with existing config
-    this.hsvHueWheel.updateConfig(config);
-    
-    // Re-render just the hue wheel if it's already initialized
-    try {
-      const geometry = this.hsvHueWheel.getGeometry();
-      if (geometry.radius > 0) {
-        // Re-render the hue wheel with updated config
-        // The render() method will use the updated config from updateConfig()
-        this.hsvHueWheel.render();
-        
-        // Also re-render the color points if they exist
-        if (this.currentPreset && this.currentPreset.points && this.currentPreset.points.length > 0) {
-          this.renderHSVColorPoints(this.currentPreset.points);
-        }
-        return;
-      }
-    } catch (e) {
-      // If there's an error, fall through to full re-render
-    }
-    
-    // Fallback: re-render the full preset
-    if (this.currentPreset) {
-      this.render(this.currentPreset);
-    }
+    if (!this.currentPreset) return;
+    // Merge new config into preset so full render uses it
+    const custom = (this.currentPreset.config?.custom as Record<string, unknown>) || {};
+    custom.hsvHueWheel = { ...(custom.hsvHueWheel as object || {}), ...config };
+    this.currentPreset.config = { ...this.currentPreset.config, custom };
+    this.render(this.currentPreset);
   }
 
   /**

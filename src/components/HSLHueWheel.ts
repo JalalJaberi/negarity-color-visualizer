@@ -176,20 +176,21 @@ export class HSLHueWheel {
     const outerR = this.radius;
     const d = outerR * 2;
 
+    // Use Konva context so drawing respects shape transform and doesn't block markers
+    const localCx = outerR;
+    const localCy = outerR;
     const shape = new Konva.Shape({
       x: cx - outerR,
       y: cy - outerR,
       width: d,
       height: d,
-      sceneFunc: (_context, shape) => {
-        const canvas = shape.getLayer()?.getCanvas()._canvas;
-        const ctx = canvas?.getContext('2d');
+      listening: false,
+      sceneFunc: (context) => {
+        const ctx = (context as any)._context || (context as any).getContext?.() || context;
         if (!ctx || typeof (ctx as any).createConicGradient !== 'function') {
           return;
         }
         const createConic = (ctx as any).createConicGradient.bind(ctx);
-        const localCx = outerR;
-        const localCy = outerR;
         const gradient = createConic(-Math.PI / 2, localCx, localCy);
         const stops = 36;
         for (let i = 0; i <= stops; i++) {
