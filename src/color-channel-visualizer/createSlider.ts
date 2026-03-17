@@ -322,6 +322,7 @@ export function createChannelSlider(
   }
 
   function onThumbMouseDown(e: MouseEvent): void {
+    console.log('onThumbMouseDown', e);
     if (e.button !== 0) return;
     e.preventDefault();
     e.stopPropagation();
@@ -338,6 +339,27 @@ export function createChannelSlider(
     document.addEventListener('mouseup', onUp);
   }
   thumb.addEventListener('mousedown', onThumbMouseDown);
+
+  function onThumbTouchStart(e: TouchEvent): void {
+    console.log('onThumbTouchStart', e);
+    e.preventDefault();
+    e.stopPropagation();
+    const onMove = (e2: TouchEvent) => {
+      if (e2.touches.length === 0) return;
+      const newVal = valueFromPageCoords(e2.touches[0].clientX, e2.touches[0].clientY);
+      setValueLocal(newVal);
+      scheduleCommit();
+    };
+    const onEnd = () => {
+      document.removeEventListener('touchmove', onMove, { capture: true });
+      document.removeEventListener('touchend', onEnd, { capture: true });
+      document.removeEventListener('touchcancel', onEnd, { capture: true });
+    };
+    document.addEventListener('touchmove', onMove, { passive: false, capture: true });
+    document.addEventListener('touchend', onEnd, { capture: true });
+    document.addEventListener('touchcancel', onEnd, { capture: true });
+  }
+  thumb.addEventListener('touchstart', onThumbTouchStart, { passive: false });
 
   if (isCircular && circularCanvas) {
     circularCanvas.addEventListener('click', (e: MouseEvent) => {
@@ -381,6 +403,7 @@ export function createChannelSlider(
       if (commitTimeoutId != null) clearTimeout(commitTimeoutId);
       track.removeEventListener('click', onTrackClick);
       thumb.removeEventListener('mousedown', onThumbMouseDown);
+      thumb.removeEventListener('touchstart', onThumbTouchStart);
       wrap.remove();
     },
   };

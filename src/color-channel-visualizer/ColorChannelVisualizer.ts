@@ -59,6 +59,7 @@ export function ColorChannelVisualizer(
 
   let rafId: number | null = null;
   let pendingChangedKey: string | null = null;
+
   function flush() {
     rafId = null;
     const changedKey = pendingChangedKey;
@@ -72,6 +73,7 @@ export function ColorChannelVisualizer(
       }
     });
   }
+
   function scheduleFlush(key: string) {
     pendingChangedKey = key;
     if (rafId == null) rafId = requestAnimationFrame(flush);
@@ -87,7 +89,7 @@ export function ColorChannelVisualizer(
     if (previewEl) previewEl.style.backgroundColor = valuesToHex(colorSpaceKey, values);
   }
 
-    space.channels.forEach((channelDef) => {
+  space.channels.forEach((channelDef) => {
     const key = channelDef.key;
     const currentValue = values[key] ?? channelDef.min;
     const slider = createChannelSlider(slidersWrap, channelDef, {

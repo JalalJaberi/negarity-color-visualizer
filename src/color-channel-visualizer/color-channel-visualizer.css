@@ -84,7 +84,7 @@
   width: var(--ccv-thumb-size);
   height: var(--ccv-thumb-size);
   border-radius: var(--ccv-radius);
-  background: #fff;
+  background: #fff0;
   border: 2px solid #333;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   pointer-events: auto;
