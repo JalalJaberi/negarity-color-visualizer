@@ -150,7 +150,7 @@ export function createChannelSlider(
     const h = circularCanvas.height;
     const cx = w / 2;
     const cy = h / 2;
-    const radius = Math.min(cx, cy) - 4;
+    const radius = Math.min(cx, cy);
     const L = values.L ?? values.l ?? 50;
     const C = values.C ?? values.c ?? 50;
     // Use 72 segments (every 5°) for performance; still smooth visually
@@ -170,6 +170,42 @@ export function createChannelSlider(
       ctx.fillStyle = hex;
       ctx.fill();
     }
+  }
+
+  /** Overlay color and opacity so that (hue ring + overlay) visually matches the current HSL/HSV color. */
+  function getOverlayForHueWheel(space: string, v: Record<string, number>): { color: string; opacity: number } {
+    const s = (space || '').toUpperCase();
+    if (s === 'HSL') {
+      const l = v.l ?? v.L ?? 50;
+      const sat = v.s ?? v.S ?? 50;
+      const [r, g, b] = hslToRgb(0, 0, l);
+      return { color: rgbToHex(r, g, b), opacity: 1 - sat / 100 };
+    }
+    if (s === 'HSV') {
+      const val = v.v ?? v.V ?? 50;
+      const sat = v.s ?? v.S ?? 50;
+      const [r, g, b] = hsvToRgb(0, 0, val);
+      return { color: rgbToHex(r, g, b), opacity: 1 - sat / 100 };
+    }
+    return { color: 'black', opacity: 0.25 };
+  }
+
+  function drawOverlayForCircularDependentGradient(color: string, opacity: number): void {
+    if (!circularCanvas) return;
+    const ctx = circularCanvas.getContext('2d');
+    if (!ctx) return;
+    const w = circularCanvas.width;
+    const h = circularCanvas.height;
+    const cx = w / 2;
+    const cy = h / 2;
+    const radius = Math.min(cx, cy);
+    ctx.clearRect(0, 0, w, h);
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+    ctx.fillStyle = color;
+    ctx.globalAlpha = opacity;
+    ctx.fill();
+    ctx.globalAlpha = 1;
   }
 
   function updateTrackGradient(): void {
@@ -235,7 +271,12 @@ export function createChannelSlider(
       return;
     }
     if (channelDef.type === CHANNEL_TYPES.CIRCULAR_DEPENDENT && circularCanvas) {
-      drawCircularDependentGradient();
+      if ((_colorSpace || '').toUpperCase() === 'LCH') {
+        drawCircularDependentGradient();
+      } else {
+        const { color, opacity } = getOverlayForHueWheel(_colorSpace || '', values);
+        drawOverlayForCircularDependentGradient(color, opacity);
+      }
       drawCircularThumb();
     }
   }

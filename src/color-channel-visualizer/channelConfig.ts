@@ -50,7 +50,7 @@ export const COLOR_SPACES: Record<string, ColorSpaceDef> = {
   HSL: {
     name: 'HSL',
     channels: [
-      { key: 'h', label: 'H', type: CHANNEL_TYPES.CIRCULAR, min: 0, max: 360, unit: '°', dependsOn: [] },
+      { key: 'h', label: 'H', type: CHANNEL_TYPES.CIRCULAR_DEPENDENT, min: 0, max: 360, unit: '°', dependsOn: ['s', 'l'] },
       { key: 's', label: 'S', type: CHANNEL_TYPES.DEPENDENT_2, min: 0, max: 100, unit: '%', dependsOn: ['h'] },
       { key: 'l', label: 'L', type: CHANNEL_TYPES.DEPENDENT_3, min: 0, max: 100, unit: '%', dependsOn: ['h', 's'], gradient: { minColor: '#000000', midColor: 'hsl', maxColor: '#ffffff' } },
     ],
@@ -59,7 +59,7 @@ export const COLOR_SPACES: Record<string, ColorSpaceDef> = {
   HSV: {
     name: 'HSV',
     channels: [
-      { key: 'h', label: 'H', type: CHANNEL_TYPES.CIRCULAR, min: 0, max: 360, unit: '°', dependsOn: [] },
+      { key: 'h', label: 'H', type: CHANNEL_TYPES.CIRCULAR_DEPENDENT, min: 0, max: 360, unit: '°', dependsOn: ['s', 'v'] },
       { key: 's', label: 'S', type: CHANNEL_TYPES.DEPENDENT_2, min: 0, max: 100, unit: '%', dependsOn: ['h'] },
       { key: 'v', label: 'V', type: CHANNEL_TYPES.DEPENDENT_3, min: 0, max: 100, unit: '%', dependsOn: ['h', 's'], gradient: { minColor: '#000000', midColor: 'hsv', maxColor: '#ffffff' } },
     ],
