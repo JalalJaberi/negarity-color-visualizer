@@ -1,0 +1,55 @@
+/**
+ * Shared Negarity docs theme (matches negarity-color docs).
+ */
+
+:root {
+  --ifm-color-primary: #8E9484;
+  --ifm-color-primary-dark: #7E8474;
+  --ifm-color-primary-darker: #73796b;
+  --ifm-color-primary-darkest: #5f6459;
+  --ifm-color-primary-light: #9ca294;
+  --ifm-color-primary-lighter: #a8aea1;
+  --ifm-color-primary-lightest: #c1c5bb;
+
+  --ifm-background-color: #F2EFEA;
+  --ifm-background-surface-color: #ffffff;
+  --ifm-font-color-base: #2F2F2D;
+
+  --ifm-color-emphasis-200: #B9B6B1;
+
+  --ifm-footer-background-color: #2a2a28;
+  --ifm-footer-color: #F2EFEA;
+  --ifm-footer-link-color: var(--ifm-color-primary-light);
+  --ifm-footer-title-color: #F2EFEA;
+
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #aab1a3;
+  --ifm-color-primary-dark: #989f91;
+  --ifm-color-primary-darker: #8c9386;
+  --ifm-color-primary-darkest: #737a6e;
+  --ifm-color-primary-light: #b9c0b3;
+  --ifm-color-primary-lighter: #c6ccc0;
+  --ifm-color-primary-lightest: #d8ddd3;
+
+  --ifm-background-color: #2a2a28;
+  --ifm-background-surface-color: #333330;
+  --ifm-font-color-base: #F2EFEA;
+
+  --ifm-color-emphasis-200: #555550;
+
+  --ifm-footer-background-color: #222220;
+
+  --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.06);
+}
+
+.footer--dark {
+  --ifm-footer-background-color: #5f6459;
+}
+
+[data-theme='dark'] .footer--dark {
+  --ifm-footer-background-color: #5f6459;
+}

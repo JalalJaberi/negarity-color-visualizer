@@ -1,0 +1,417 @@
+/**
+ * Product-style hero: 3D wireframe cube + 2D plot (presenter for the visualizer library).
+ * No color matrices, blobs, or spectrum rings.
+ */
+
+.hero {
+  position: relative;
+  isolation: isolate;
+  min-height: calc(100vh - var(--ifm-navbar-height, 60px));
+  padding: 2.5rem 1.25rem 3.5rem;
+  overflow: hidden;
+}
+
+.bgWash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse 85% 55% at 85% 12%,
+    rgba(142, 148, 132, 0.16) 0%,
+    transparent 58%
+  );
+  opacity: 0.9;
+}
+
+[data-theme='dark'] .bgWash {
+  background: radial-gradient(
+    ellipse 80% 50% at 82% 8%,
+    rgba(170, 177, 163, 0.14) 0%,
+    transparent 55%
+  );
+  opacity: 1;
+}
+
+.inner {
+  position: relative;
+  z-index: 1;
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2.75rem;
+}
+
+@media (min-width: 996px) {
+  .inner {
+    flex-direction: row;
+    align-items: center;
+    gap: 3.5rem;
+  }
+}
+
+.copy {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+@media (min-width: 996px) {
+  .copy {
+    text-align: left;
+    max-width: 26rem;
+  }
+}
+
+.eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ifm-color-primary-darkest);
+  margin: 0 0 0.65rem;
+}
+
+[data-theme='dark'] .eyebrow {
+  color: var(--ifm-color-primary-lighter);
+}
+
+.title {
+  font-size: clamp(1.85rem, 4.2vw, 2.65rem);
+  font-weight: 800;
+  line-height: 1.12;
+  margin: 0 0 1rem;
+  letter-spacing: -0.03em;
+  color: var(--ifm-font-color-base);
+}
+
+.subtitle {
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: var(--ifm-font-color-base);
+  opacity: 0.9;
+  margin: 0 0 1.75rem;
+}
+
+.subtitle strong {
+  color: var(--ifm-color-primary-darker);
+  font-weight: 700;
+}
+
+[data-theme='dark'] .subtitle strong {
+  color: var(--ifm-color-primary-lighter);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+@media (min-width: 996px) {
+  .actions {
+    align-items: flex-start;
+  }
+}
+
+.secondaryLink {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--ifm-color-primary-darker);
+  text-decoration: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.secondaryLink:hover {
+  opacity: 0.82;
+  transform: translateX(3px);
+}
+
+[data-theme='dark'] .secondaryLink {
+  color: var(--ifm-color-primary-lighter);
+}
+
+/* —— Showcase: two viewport cards —— */
+
+.showcase {
+  flex: 1.15;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.demoRow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 520px) {
+  .demoRow {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.1rem;
+  }
+}
+
+.demoCard {
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 14px;
+  background: var(--ifm-background-surface-color);
+  box-shadow: 0 10px 36px rgba(15, 20, 10, 0.06);
+  overflow: hidden;
+}
+
+[data-theme='dark'] .demoCard {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  border-color: var(--ifm-color-emphasis-200);
+}
+
+.demoLabel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ifm-font-color-base);
+  opacity: 0.75;
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+  background: var(--ifm-background-surface-color);
+}
+
+[data-theme='dark'] .demoLabel {
+  background: var(--ifm-background-surface-color);
+}
+
+.demoBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--ifm-background-surface-color);
+  background: var(--ifm-color-primary-darker);
+}
+
+[data-theme='dark'] .demoBadge {
+  background: var(--ifm-color-primary);
+  color: var(--ifm-background-color);
+}
+
+.demoBody {
+  position: relative;
+  min-height: 168px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.1rem 0.75rem 1rem;
+}
+
+/* —— 3D wireframe cube —— */
+
+.cubeStage {
+  perspective: 420px;
+  width: 112px;
+  height: 112px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cubePivot {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  transform-style: preserve-3d;
+  animation: cubeOrbit 16s linear infinite;
+}
+
+.cubeFace {
+  position: absolute;
+  inset: 0;
+  width: 72px;
+  height: 72px;
+  box-sizing: border-box;
+  border: 1.5px solid var(--ifm-color-emphasis-200);
+  background: color-mix(in srgb, var(--ifm-color-primary) 6%, transparent);
+  border-radius: 2px;
+}
+
+[data-theme='dark'] .cubeFace {
+  border-color: color-mix(in srgb, var(--ifm-color-primary) 45%, #444 55%);
+  background: color-mix(in srgb, var(--ifm-color-primary) 12%, transparent);
+}
+
+.cubeFront {
+  transform: rotateY(0deg) translateZ(36px);
+}
+.cubeBack {
+  transform: rotateY(180deg) translateZ(36px);
+}
+.cubeRight {
+  transform: rotateY(90deg) translateZ(36px);
+}
+.cubeLeft {
+  transform: rotateY(-90deg) translateZ(36px);
+}
+.cubeTop {
+  transform: rotateX(90deg) translateZ(36px);
+}
+.cubeBottom {
+  transform: rotateX(-90deg) translateZ(36px);
+}
+
+.axisLegend {
+  display: flex;
+  gap: 0.65rem;
+  margin-top: 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.axisR {
+  color: #e11d48;
+}
+.axisG {
+  color: #16a34a;
+}
+.axisB {
+  color: #2563eb;
+}
+
+/* —— 2D plot —— */
+
+.plotSvg {
+  width: 100%;
+  max-width: 220px;
+  height: auto;
+  display: block;
+}
+
+.plotFrame {
+  stroke: var(--ifm-color-emphasis-200);
+  stroke-width: 1.25;
+  fill: var(--ifm-background-surface-color);
+}
+
+[data-theme='dark'] .plotFrame {
+  fill: var(--ifm-background-surface-color);
+}
+
+.plotAxis {
+  stroke: var(--ifm-color-emphasis-200);
+  stroke-width: 1.25;
+  stroke-linecap: round;
+}
+
+.plotAxisText {
+  fill: var(--ifm-font-color-base);
+  opacity: 0.45;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.plotTrail {
+  stroke: #7a8474;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-dasharray: 5 7;
+  opacity: 0.65;
+  animation: trailPulse 4s ease-in-out infinite;
+}
+
+[data-theme='dark'] .plotTrail {
+  stroke: #a8b0a0;
+}
+
+.plotDotWrap {
+  animation: plotDotTour 11s ease-in-out infinite;
+}
+
+.plotDot {
+  fill: var(--ifm-color-primary-darker);
+  stroke: var(--ifm-background-surface-color);
+  stroke-width: 2;
+}
+
+[data-theme='dark'] .plotDot {
+  fill: var(--ifm-color-primary-lighter);
+  stroke: var(--ifm-background-surface-color);
+}
+
+.showcaseHint {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--ifm-font-color-base);
+  opacity: 0.62;
+  text-align: center;
+}
+
+@media (min-width: 996px) {
+  .showcaseHint {
+    text-align: right;
+  }
+}
+
+@keyframes cubeOrbit {
+  from {
+    transform: rotateX(-18deg) rotateY(0deg);
+  }
+  to {
+    transform: rotateX(-18deg) rotateY(360deg);
+  }
+}
+
+@keyframes plotDotTour {
+  0%,
+  100% {
+    transform: translate(52px, 96px);
+  }
+  28% {
+    transform: translate(132px, 48px);
+  }
+  55% {
+    transform: translate(172px, 82px);
+  }
+  78% {
+    transform: translate(96px, 108px);
+  }
+}
+
+@keyframes trailPulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cubePivot,
+  .plotDotWrap,
+  .plotTrail {
+    animation: none;
+  }
+
+  .plotTrail {
+    opacity: 0.65;
+  }
+}

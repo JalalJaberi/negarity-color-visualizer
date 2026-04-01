@@ -1,0 +1,24 @@
+announcement:
+  label: Announcement
+  permalink: /announcement
+  description: Library announcements and updates
+
+typescript:
+  label: TypeScript
+  permalink: /typescript
+  description: TypeScript and browser APIs
+
+color:
+  label: Color
+  permalink: /color
+  description: Color visualization
+
+library:
+  label: Library
+  permalink: /library
+  description: Library features and updates
+
+visualization:
+  label: Visualization
+  permalink: /visualization
+  description: 2D and 3D visualization
