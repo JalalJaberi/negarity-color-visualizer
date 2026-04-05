@@ -1,0 +1,10 @@
+{
+  "label": "Examples",
+  "position": 4,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "title": "Examples by color space",
+    "description": "Minimal patterns for visualizing a single color in each built-in space using ColorVisualizer and PresetConfig."
+  }
+}

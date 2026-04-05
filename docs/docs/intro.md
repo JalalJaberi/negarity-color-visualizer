@@ -24,5 +24,6 @@ sidebar_position: 1
 - [ColorVisualizer](./guides/color-visualizer) — main class API
 - [Modes & renderers](./guides/modes-and-renderers) — 2D vs 3D
 - [Presets & color spaces](./guides/presets-and-spaces) — built-in definitions
+- [Examples](./examples/rgb) — visualize a color in each space (RGB, HSL, HSV, Lab, LCh, XYZ, CMYK, YCbCr)
 - [Channel visualizer](./guides/channel-visualizer) — slider UI
 - [Type reference](./reference/types) — `VisualizerConfig`, `PresetConfig`, etc.
