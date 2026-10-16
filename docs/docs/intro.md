@@ -20,6 +20,7 @@ sidebar_position: 1
 
 ## Next steps
 
+- [Architecture](./architecture) — components and design principles
 - [Getting started](./getting-started) — install and first example
 - [ColorVisualizer](./guides/color-visualizer) — main class API
 - [Modes & renderers](./guides/modes-and-renderers) — 2D vs 3D

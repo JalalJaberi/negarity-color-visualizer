@@ -13,8 +13,9 @@ A TypeScript-based, browser-only library for visualizing colors in 2D and 3D.
 
 ## Documentation
 
+- **Agent / contributor guide**: [AGENTS.md](./AGENTS.md)
 - **Online / built site**: develop and build the Docusaurus project in the **[`docs/`](./docs/)** folder (`npm install && npm start` inside `docs/`; requires **Node 20+**).
-- Topics: **ColorVisualizer**, 2D/3D renderers, **presets**, **ColorChannelVisualizer**, and **TypeScript types**.
+- Topics: **Architecture**, **ColorVisualizer**, 2D/3D renderers, **presets**, **ColorChannelVisualizer**, and **TypeScript types**.
 
 ## Installation
 
