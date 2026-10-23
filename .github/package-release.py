@@ -7,8 +7,8 @@ import sys
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-INCLUDE = ['dist', 'package.json']
-REQUIRED = ['dist/negarity-color-visualizer.umd.js', 'dist/negarity-color-visualizer.es.js', 'dist/index.d.ts']
+INCLUDE = ['dist', 'package.json', 'THIRD_PARTY_LICENSES.txt']
+REQUIRED = ['dist/negarity-color-visualizer.umd.js', 'dist/negarity-color-visualizer.es.mjs', 'dist/index.d.ts']
 SLUG = 'negarity-color-visualizer'
 
 def main():

@@ -3,16 +3,22 @@
   "version": "1.0.0",
   "description": "A TypeScript-based, browser-only library for visualizing colors in 2D and 3D",
   "main": "dist/negarity-color-visualizer.umd.js",
-  "module": "dist/negarity-color-visualizer.es.js",
+  "module": "dist/negarity-color-visualizer.es.mjs",
   "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "!dist/**/*.map",
+    "!dist/examples",
+    "THIRD_PARTY_LICENSES.txt"
   ],
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "check:version": "node scripts/check-version.mjs",
+    "check:package": "node scripts/check-package.mjs",
+    "prepack": "npm run check:version && npm run build"
   },
   "keywords": [
     "color",
@@ -47,5 +53,28 @@
     "> 1%",
     "last 2 versions",
     "not dead"
-  ]
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/negarity-color-visualizer.es.mjs",
+      "require": "./dist/negarity-color-visualizer.umd.js"
+    },
+    "./style.css": "./dist/style.css",
+    "./circle.png": "./dist/circle.png",
+    "./horseshoe.png": "./dist/horseshoe.png",
+    "./dist/*": "./dist/*",
+    "./package.json": "./package.json"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "homepage": "https://github.com/JalalJaberi/negarity-color-visualizer#readme",
+  "bugs": {
+    "url": "https://github.com/JalalJaberi/negarity-color-visualizer/issues"
+  }
 }

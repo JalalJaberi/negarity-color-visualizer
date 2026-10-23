@@ -52,7 +52,7 @@ Utilities exported for advanced use:
 ## Example
 
 ```typescript
-import { ColorChannelVisualizer } from 'negarity-color-visualizer';
+import { ColorChannelVisualizer } from '@jalaljaberi/negarity-color-visualizer';
 
 const box = document.getElementById('channels')!;
 const ui = ColorChannelVisualizer(box, {

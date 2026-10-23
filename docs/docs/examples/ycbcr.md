@@ -10,8 +10,8 @@ title: YCbCr
 Use **`YCBCR_COLOR_SPACE`**. The **2D** diagram follows the same chromaticity-style treatment as other examples in the library (gamut triangle for YCbCr).
 
 ```typescript
-import { ColorVisualizer, YCBCR_COLOR_SPACE } from 'negarity-color-visualizer';
-import type { PresetConfig } from 'negarity-color-visualizer';
+import { ColorVisualizer, YCBCR_COLOR_SPACE } from '@jalaljaberi/negarity-color-visualizer';
+import type { PresetConfig } from '@jalaljaberi/negarity-color-visualizer';
 
 const container = document.getElementById('viz')!;
 

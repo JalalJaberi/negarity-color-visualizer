@@ -10,8 +10,8 @@ title: LCh (CIELCh)
 Use **`LCH_COLOR_SPACE`**. The **2D** renderer shows a **chromaticity-style** diagram derived from the color (same family as Lab/XYZ in the library examples).
 
 ```typescript
-import { ColorVisualizer, LCH_COLOR_SPACE } from 'negarity-color-visualizer';
-import type { PresetConfig } from 'negarity-color-visualizer';
+import { ColorVisualizer, LCH_COLOR_SPACE } from '@jalaljaberi/negarity-color-visualizer';
+import type { PresetConfig } from '@jalaljaberi/negarity-color-visualizer';
 
 const container = document.getElementById('viz')!;
 

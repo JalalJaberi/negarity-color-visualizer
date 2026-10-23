@@ -1,3 +1,55 @@
+# npm publishing
+
+The package name is `@jalaljaberi/negarity-color-visualizer` and its initial version
+is `1.0.0`. `package.json` is the version source; `package-lock.json` must match.
+Do not add a separate `VERSION` file. The documentation site's `docs/package.json`
+has its own version and does not determine the library's npm version.
+
+## Prepare and verify
+
+Use Node 22 (`nvm use` if you use nvm):
+
+```sh
+npm ci
+npm run check:version -- v1.0.0
+npm run check:package
+npm pack
+```
+
+`npm run check:package` rebuilds and validates the actual npm file list.
+`npm pack` rebuilds production bundles and checks version metadata through `prepack`. Inspect the resulting
+`jalaljaberi-negarity-color-visualizer-1.0.0.tgz` before publishing.
+It includes ESM and UMD bundles, TypeScript declarations, CSS, images, README and
+licenses. Source code, examples, docs, source maps and build tools are excluded.
+The UMD global remains `NegarityColorVisualizer` for WordPress and script embeds.
+
+## Publish
+
+Commit and push the prepared changes first. Sign in with an npm account allowed
+to publish under the `@jalaljaberi` scope, then publish the inspected tarball:
+
+```sh
+npm login --registry=https://registry.npmjs.org/
+npm publish ./jalaljaberi-negarity-color-visualizer-1.0.0.tgz --access public
+```
+
+npm may ask for account verification or two-factor authentication. Confirm the
+published version:
+
+```sh
+npm view @jalaljaberi/negarity-color-visualizer@1.0.0 version
+```
+
+Publish the matching GitHub Release with tag `v1.0.0` targeting the prepared commit.
+The GitHub workflow verifies that the tag equals `v` plus `package.json`'s version,
+then builds and attaches the ZIP. It does not publish to npm.
+
+For later versions, use `npm version patch --no-git-tag-version` (or `minor` /
+`major`) to update both metadata files, review changes, commit, and use the matching
+GitHub tag. A published npm name/version cannot be reused. Use a prerelease version
+such as `1.1.0-beta.1` and `npm publish <tarball> --access public --tag next` for betas
+so they do not replace the stable `latest` dist-tag.
+
 # Release ZIP
 
 Publish a GitHub Release (including a prerelease) to build and attach

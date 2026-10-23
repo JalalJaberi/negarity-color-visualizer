@@ -37,8 +37,10 @@ jobs:
           cache: npm
       - name: Install build dependencies
         run: npm ci
-      - name: Build production assets
-        run: npm run build
+      - name: Verify package and release version
+        run: npm run check:version -- "$RELEASE_TAG"
+      - name: Build and validate npm package contents
+        run: npm run check:package
       - name: Package and validate runtime files
         run: python3 .github/package-release.py "$RELEASE_TAG" "${GITHUB_REPOSITORY#*/}"
       - name: Attach ZIP to release

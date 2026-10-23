@@ -10,8 +10,8 @@ title: CMYK
 Use **`CMYK_COLOR_SPACE`**. The **2D** view in the stock example is a **C vs M** slice (with Y and K carried in the point); your **`values`** must always have **four** numbers.
 
 ```typescript
-import { ColorVisualizer, CMYK_COLOR_SPACE } from 'negarity-color-visualizer';
-import type { PresetConfig } from 'negarity-color-visualizer';
+import { ColorVisualizer, CMYK_COLOR_SPACE } from '@jalaljaberi/negarity-color-visualizer';
+import type { PresetConfig } from '@jalaljaberi/negarity-color-visualizer';
 
 const container = document.getElementById('viz')!;
 

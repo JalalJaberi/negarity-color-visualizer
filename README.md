@@ -21,13 +21,20 @@ A TypeScript-based, browser-only library for visualizing colors in 2D and 3D.
 ## Installation
 
 ```bash
-npm install negarity-color-visualizer
+npm install @jalaljaberi/negarity-color-visualizer
 ```
+
+## Version and publishing
+
+The npm version is recorded in `package.json` (currently `1.0.0`) and synchronized
+in `package-lock.json`. No separate `VERSION` file is needed. Use Git tag `v1.0.0`
+for the matching GitHub release. See [publishing instructions](./.github/RELEASING.md).
 
 ## Quick Start
 
 ```typescript
-import { ColorVisualizer, RGB_CUBE_PRESET } from 'negarity-color-visualizer';
+import { ColorVisualizer, RGB_CUBE_PRESET } from '@jalaljaberi/negarity-color-visualizer';
+import '@jalaljaberi/negarity-color-visualizer/style.css';
 
 // Create a visualizer instance
 const container = document.getElementById('visualizer-container');
@@ -73,7 +80,7 @@ new ColorVisualizer(container: HTMLElement | string, config?: Partial<Visualizer
 You can define custom color spaces and create your own presets:
 
 ```typescript
-import { ColorSpace, PresetConfig } from 'negarity-color-visualizer';
+import { ColorSpace, PresetConfig } from '@jalaljaberi/negarity-color-visualizer';
 
 const customColorSpace: ColorSpace = {
   name: 'Custom',

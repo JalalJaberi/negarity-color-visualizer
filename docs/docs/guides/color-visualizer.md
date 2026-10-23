@@ -49,11 +49,11 @@ These forward to **`Renderer2D`** when the method exists; they no-op in 3D:
 ## Imports
 
 ```typescript
-import { ColorVisualizer } from 'negarity-color-visualizer';
+import { ColorVisualizer } from '@jalaljaberi/negarity-color-visualizer';
 ```
 
 Lower-level renderers are also exported if you need them directly:
 
 ```typescript
-import { Renderer2D, Renderer3D } from 'negarity-color-visualizer';
+import { Renderer2D, Renderer3D } from '@jalaljaberi/negarity-color-visualizer';
 ```

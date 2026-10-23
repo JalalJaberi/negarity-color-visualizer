@@ -17,7 +17,7 @@ CSS is imported by the module (same pattern as the channel visualizer). With the
 ## Quick start
 
 ```typescript
-import { ColorExplorer } from 'negarity-color-visualizer';
+import { ColorExplorer } from '@jalaljaberi/negarity-color-visualizer';
 
 const el = document.getElementById('explorer')!;
 

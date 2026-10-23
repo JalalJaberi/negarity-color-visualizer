@@ -10,8 +10,8 @@ title: HSL
 Use **`HSL_COLOR_SPACE`**. For a **2D hue × saturation** diagram at a fixed lightness, set **`config.custom.projection`** to **`'hue-saturation'`** and **`fixedLightness`** to the lightness slice you want.
 
 ```typescript
-import { ColorVisualizer, HSL_COLOR_SPACE } from 'negarity-color-visualizer';
-import type { PresetConfig } from 'negarity-color-visualizer';
+import { ColorVisualizer, HSL_COLOR_SPACE } from '@jalaljaberi/negarity-color-visualizer';
+import type { PresetConfig } from '@jalaljaberi/negarity-color-visualizer';
 
 const container = document.getElementById('viz')!;
 const lightness = 50;

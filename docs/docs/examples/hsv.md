@@ -10,8 +10,8 @@ title: HSV
 Use **`HSV_COLOR_SPACE`**. In **2D**, the renderer draws the **hue wheel** / HSV diagram; your point is placed from the triplet.
 
 ```typescript
-import { ColorVisualizer, HSV_COLOR_SPACE } from 'negarity-color-visualizer';
-import type { PresetConfig } from 'negarity-color-visualizer';
+import { ColorVisualizer, HSV_COLOR_SPACE } from '@jalaljaberi/negarity-color-visualizer';
+import type { PresetConfig } from '@jalaljaberi/negarity-color-visualizer';
 
 const container = document.getElementById('viz')!;
 

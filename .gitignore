@@ -33,3 +33,7 @@ coverage/
 # Temporary
 tmp/
 temp/
+
+# Release packages
+*.tgz
+release-assets/

@@ -10,8 +10,8 @@ title: XYZ
 Use **`XYZ_COLOR_SPACE`**. For a **chromaticity** view (xy projection, gamut horseshoe), enable **`custom.showChromaticity`** like RGB.
 
 ```typescript
-import { ColorVisualizer, XYZ_COLOR_SPACE } from 'negarity-color-visualizer';
-import type { PresetConfig } from 'negarity-color-visualizer';
+import { ColorVisualizer, XYZ_COLOR_SPACE } from '@jalaljaberi/negarity-color-visualizer';
+import type { PresetConfig } from '@jalaljaberi/negarity-color-visualizer';
 
 const container = document.getElementById('viz')!;
 

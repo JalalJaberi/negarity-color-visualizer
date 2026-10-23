@@ -10,8 +10,8 @@ title: Lab (CIELAB)
 Use **`LAB_COLOR_SPACE`**. The **2D** view is typically the **a\* vs b\*** plane at the current **L\*** (your point’s first component).
 
 ```typescript
-import { ColorVisualizer, LAB_COLOR_SPACE } from 'negarity-color-visualizer';
-import type { PresetConfig } from 'negarity-color-visualizer';
+import { ColorVisualizer, LAB_COLOR_SPACE } from '@jalaljaberi/negarity-color-visualizer';
+import type { PresetConfig } from '@jalaljaberi/negarity-color-visualizer';
 
 const container = document.getElementById('viz')!;
 

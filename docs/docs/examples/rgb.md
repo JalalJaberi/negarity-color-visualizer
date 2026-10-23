@@ -14,8 +14,8 @@ Use **`RGB_COLOR_SPACE`** and pass a **`ColorPoint`** whose **`values`** array i
 Good for showing **how an RGB triplet sits in chromaticity** (projected from XYZ). Enable **`custom.showChromaticity`**.
 
 ```typescript
-import { ColorVisualizer, RGB_COLOR_SPACE } from 'negarity-color-visualizer';
-import type { PresetConfig } from 'negarity-color-visualizer';
+import { ColorVisualizer, RGB_COLOR_SPACE } from '@jalaljaberi/negarity-color-visualizer';
+import type { PresetConfig } from '@jalaljaberi/negarity-color-visualizer';
 
 const container = document.getElementById('viz')!;
 

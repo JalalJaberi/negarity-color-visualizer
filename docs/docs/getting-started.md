@@ -7,15 +7,20 @@ sidebar_position: 2
 ## Installation
 
 ```bash
-npm install negarity-color-visualizer
+npm install @jalaljaberi/negarity-color-visualizer
 ```
 
-The package lists **three** and **konva** as dependencies; your app bundler (Vite, webpack, etc.) will include them when you import the library.
+The built JavaScript bundles include Three.js and Konva. Import the stylesheet
+explicitly when using the package through an app bundler:
+
+```typescript
+import '@jalaljaberi/negarity-color-visualizer/style.css';
+```
 
 ## Minimal 3D example
 
 ```typescript
-import { ColorVisualizer, RGB_CUBE_PRESET } from 'negarity-color-visualizer';
+import { ColorVisualizer, RGB_CUBE_PRESET } from '@jalaljaberi/negarity-color-visualizer';
 
 const el = document.getElementById('visualizer');
 if (!el) throw new Error('Missing #visualizer');
@@ -39,12 +44,12 @@ visualizer.render(RGB_CUBE_PRESET);
 
 ## Channel sliders (optional)
 
-Import the channel visualizer (this pulls in the package CSS for sliders):
+Import the channel visualizer and the package stylesheet shown above:
 
 ```typescript
 import {
   ColorChannelVisualizer,
-} from 'negarity-color-visualizer';
+} from '@jalaljaberi/negarity-color-visualizer';
 
 const root = document.getElementById('sliders')!;
 const instance = ColorChannelVisualizer(root, {

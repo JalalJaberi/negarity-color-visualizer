@@ -28,7 +28,7 @@ Each includes optional **`bounds`** with **`min` / `max`** arrays aligned to **`
 ### Helpers
 
 ```typescript
-import { getBuiltInPresets, getPresetByName } from 'negarity-color-visualizer';
+import { getBuiltInPresets, getPresetByName } from '@jalaljaberi/negarity-color-visualizer';
 
 getBuiltInPresets(); // currently [RGB_CUBE_PRESET]
 getPresetByName('RGB Cube'); // same preset or null
@@ -37,7 +37,7 @@ getPresetByName('RGB Cube'); // same preset or null
 ## Custom `PresetConfig`
 
 ```typescript
-import type { ColorSpace, PresetConfig } from 'negarity-color-visualizer';
+import type { ColorSpace, PresetConfig } from '@jalaljaberi/negarity-color-visualizer';
 
 const colorSpace: ColorSpace = {
   name: 'Custom',
