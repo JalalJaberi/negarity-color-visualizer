@@ -23,26 +23,51 @@ It includes ESM and UMD bundles, TypeScript declarations, CSS, images, README an
 licenses. Source code, examples, docs, source maps and build tools are excluded.
 The UMD global remains `NegarityColorVisualizer` for WordPress and script embeds.
 
-## Publish
+## Automatic publishing from GitHub
 
-Commit and push the prepared changes first. Sign in with an npm account allowed
-to publish under the `@jalaljaberi` scope, then publish the inspected tarball:
+Configure this once on npmjs.com, on the package's **Settings → Trusted Publisher**
+section. Choose **GitHub Actions** and enter:
+
+- Organization or user: `JalalJaberi`
+- Repository: `negarity-color-visualizer`
+- Workflow filename: `release.yml` (no directory prefix)
+- Environment name: leave empty (the workflow does not use an environment)
+- If allowed-action options are shown, allow direct publishing with `npm publish`.
+
+Save the configuration and complete npm's account verification if prompted.
+No npm token or GitHub npm secret is needed. The workflow uses a GitHub-hosted
+runner, Node 22, npm 11 and `id-token: write` for OIDC authentication.
+
+Commit and push the workflow before creating the release tag. For each new version:
+
+1. Update the version with `npm version patch --no-git-tag-version` (or `minor` /
+   `major`), which updates both package metadata files.
+2. Commit and push the changes.
+3. Publish a GitHub Release with the matching tag, such as `v1.0.1`.
+4. The workflow builds and attaches the ZIP, then publishes the npm package.
+
+The workflow rejects a tag that does not match `package.json`. Stable releases
+publish under npm's `latest` tag; prerelease versions or GitHub prereleases use
+`next`. Use a prerelease version such as `1.1.0-beta.1` for beta releases.
+Manual **Run workflow** runs only rebuild the ZIP and do not publish to npm.
+
+Version `1.0.0` was published manually. Do not try to publish that version again:
+npm versions are immutable. Rerunning the npm publishing job for an already
+published version will fail; create a new version for new code. Editing an existing
+GitHub Release does not trigger publishing; publish a new release.
+
+## Manual fallback
+
+After `npm pack`, you can still publish the generated tarball from your terminal:
 
 ```sh
 npm login --registry=https://registry.npmjs.org/
 npm publish ./jalaljaberi-negarity-color-visualizer-1.0.0.tgz --access public
 ```
 
-npm may ask for account verification or two-factor authentication. Confirm the
-published version:
-
-```sh
-npm view @jalaljaberi/negarity-color-visualizer@1.0.0 version
-```
-
-Publish the matching GitHub Release with tag `v1.0.0` targeting the prepared commit.
-The GitHub workflow verifies that the tag equals `v` plus `package.json`'s version,
-then builds and attaches the ZIP. It does not publish to npm.
+Use the tarball filename for your new version. Manual publishing requires npm's
+interactive account verification. Check the published version using
+`npm view @jalaljaberi/negarity-color-visualizer version`.
 
 For later versions, use `npm version patch --no-git-tag-version` (or `minor` /
 `major`) to update both metadata files, review changes, commit, and use the matching

@@ -45,3 +45,43 @@ jobs:
         run: python3 .github/package-release.py "$RELEASE_TAG" "${GITHUB_REPOSITORY#*/}"
       - name: Attach ZIP to release
         run: gh release upload "$RELEASE_TAG" release-assets/*.zip --repo "$GITHUB_REPOSITORY" --clobber
+
+  publish-npm:
+    name: Publish to npm
+    needs: package
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      RELEASE_TAG: ${{ github.event.release.tag_name }}
+      IS_PRERELEASE: ${{ github.event.release.prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - name: Install npm with trusted publishing support
+        run: npm install --global npm@11
+      - name: Install build dependencies
+        run: npm ci
+      - name: Verify package and release version
+        run: npm run check:version -- "$RELEASE_TAG"
+      - name: Build and validate npm package contents
+        run: npm run check:package
+      - name: Publish using npm trusted publishing
+        shell: bash
+        run: |
+          PACKAGE_VERSION="$(node -p 'require("./package.json").version')"
+          DIST_TAG=latest
+          if [[ "$PACKAGE_VERSION" == *-* || "$IS_PRERELEASE" == true ]]; then
+            DIST_TAG=next
+          fi
+          npm publish --access public --tag "$DIST_TAG"
