@@ -26,8 +26,8 @@ npm install @jalaljaberi/negarity-color-visualizer
 
 ## Version and publishing
 
-The npm version is recorded in `package.json` (currently `1.0.0`) and synchronized
-in `package-lock.json`. No separate `VERSION` file is needed. Use Git tag `v1.0.0`
+The npm version is recorded in `package.json` (currently `1.0.1`) and synchronized
+in `package-lock.json`. No separate `VERSION` file is needed. Use Git tag `v1.0.1`
 for the matching GitHub release. After configuring npm trusted publishing, GitHub
 Releases automatically publish the matching npm version and attach the runtime ZIP.
 See [publishing instructions](./.github/RELEASING.md).
