@@ -12,12 +12,12 @@ Browser-only companion for **visualizing** color spaces — not a color-science 
 ## Architecture
 
 ```text
-ColorVisualizer
-  ├── Renderer3D (Three.js + orbit controls)
-  └── Renderer2D (Konva)
-
-ColorChannelVisualizer
-  └── per-space channel defs, dependent gradients, preview
+ColorExplorer (unified shell)
+  ├── ColorVisualizer
+  │     ├── Renderer3D (Three.js + orbit controls)
+  │     └── Renderer2D (Konva)
+  └── ColorChannelVisualizer
+        └── per-space channel defs, dependent gradients, preview
 
 presets/   — RGB cube, color-space axis defs
 types/     — VisualizerConfig, PresetConfig, ColorPoint, …
@@ -25,6 +25,7 @@ types/     — VisualizerConfig, PresetConfig, ColorPoint, …
 
 | Entry | Role |
 |-------|------|
+| `src/color-explorer/*` | Configurable shell: space/mode chrome, layouts (`auto` / `desktop` / `mobile` / `display`), fixed vs editable controls |
 | `src/ColorVisualizer.ts` | Mount, `render(preset)`, `update(points)`, resize, destroy |
 | `src/renderers/*` | 2D / 3D backends |
 | `src/presets/*` | Built-in spaces & presets (`RGB_CUBE_PRESET`, …) |
@@ -36,6 +37,7 @@ types/     — VisualizerConfig, PresetConfig, ColorPoint, …
 - **Preset:** declarative description of a space + how to draw it (axes, shapes, markers).
 - **Mode:** `2d` vs `3d` selects renderer.
 - **ColorChannelVisualizer:** independent widget; maps channel values ↔ preview hex; supports Lab/LCh key casing (`L`/`C` vs `l`/`c`).
+- **ColorExplorer:** preferred embed for product UI — one shell, every space; use `layout` + per-control `visible` / `editable` for responsiveness and locked embeds. Demo: `examples/color-explorer.html`.
 
 ---
 

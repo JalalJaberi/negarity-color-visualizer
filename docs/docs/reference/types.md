@@ -90,6 +90,14 @@ interface IRenderer {
 }
 ```
 
+## Color Explorer
+
+See **[Color Explorer](../guides/color-explorer)** and **`src/color-explorer/types.ts`**:
+
+- **`LayoutMode`** — `'auto' | 'desktop' | 'mobile' | 'display'`
+- **`UiControlConfig<T>`** — `{ visible?, editable?, value? }` for space / mode locks
+- **`ColorExplorerOptions`** / **`ColorExplorerState`** / **`ColorExplorerInstance`**
+
 ## Component config types (2D)
 
 Used by **`ColorVisualizer`** update methods — see **`src/components/types.ts`** for fields such as **`CIEBackgroundConfig`**, **`AxesConfig`**, **`MarkerConfig`**, **`HSLHueWheelConfig`**, **`HSVHueWheelConfig`**, **`CMYKGridConfig`**.

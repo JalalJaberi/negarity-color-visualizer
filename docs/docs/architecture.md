@@ -11,6 +11,7 @@ sidebar_position: 2
 
 | Component | Responsibility |
 |-----------|----------------|
+| `ColorExplorer` | Unified shell: viz + sliders + chrome; layouts `auto` / `desktop` / `mobile` / `display` |
 | `ColorVisualizer` | Lifecycle: mount, render preset, update points, resize, destroy |
 | `Renderer3D` | Three.js scene, meshes, orbit controls |
 | `Renderer2D` | Konva stage for diagrams / markers |

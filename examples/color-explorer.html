@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Color Explorer — Negarity Color Visualizer</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 32px 20px 64px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 28px;
+      letter-spacing: -0.02em;
+      margin: 0 0 6px;
+    }
+    .lede {
+      color: #64748b;
+      margin: 0 0 28px;
+      font-size: 15px;
+    }
+    section {
+      margin-bottom: 48px;
+    }
+    h2 {
+      font-size: 18px;
+      margin: 0 0 6px;
+    }
+    .section-note {
+      color: #64748b;
+      font-size: 13px;
+      margin: 0 0 16px;
+    }
+    .ce-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+    @media (max-width: 800px) {
+      .ce-grid { grid-template-columns: 1fr; }
+    }
+    .ce-grid__cell {
+      min-height: 320px;
+    }
+    .embeds {
+      display: grid;
+      grid-template-columns: 1.4fr 0.7fr 0.55fr;
+      gap: 16px;
+      align-items: start;
+    }
+    @media (max-width: 960px) {
+      .embeds { grid-template-columns: 1fr; }
+    }
+    .embed-card {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .embed-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #64748b;
+    }
+    #ce-desktop { min-height: 360px; }
+    #ce-mobile {
+      max-width: 320px;
+      width: 100%;
+      min-height: 480px;
+    }
+    #ce-display {
+      max-width: 240px;
+      width: 100%;
+    }
+    #ce-fixed-space { min-height: 340px; max-width: 720px; }
+    code {
+      font-size: 12px;
+      background: #e2e8f0;
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>One shell. Every color space.</h1>
+    <p class="lede">
+      RGB · HSL · HSV · CMYK · XYZ · Lab · LCh · YCbCr — same Color Explorer component,
+      configurable chrome, and three embed layouts.
+    </p>
+
+    <section>
+      <h2>Same controls. Different coordinates.</h2>
+      <p class="section-note">
+        Grid of explorers (layout <code>auto</code>). Resize the window to see cards reflow;
+        each card also switches side-by-side ↔ stacked via container queries.
+      </p>
+      <div id="ce-grid" class="ce-grid"></div>
+    </section>
+
+    <section>
+      <h2>One component, three ways to embed</h2>
+      <p class="section-note">
+        Forced layouts from the responsiveness mockup:
+        <strong>desktop</strong> (side-by-side + 3D),
+        <strong>mobile</strong> (stacked),
+        <strong>display</strong> (viz only).
+      </p>
+      <div class="embeds">
+        <div class="embed-card">
+          <span class="embed-label">Desktop — full controls</span>
+          <div id="ce-desktop"></div>
+        </div>
+        <div class="embed-card">
+          <span class="embed-label">Mobile — stacked controls</span>
+          <div id="ce-mobile"></div>
+        </div>
+        <div class="embed-card">
+          <span class="embed-label">Fixed — display only</span>
+          <div id="ce-display"></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Fixed vs editable controls</h2>
+      <p class="section-note">
+        Color space locked to Lab (<code>editable: false</code>); 2D/3D and sliders remain user-editable.
+      </p>
+      <div id="ce-fixed-space"></div>
+    </section>
+  </div>
+
+  <script type="module" src="/src/examples/color-explorer-demo.ts"></script>
+</body>
+</html>

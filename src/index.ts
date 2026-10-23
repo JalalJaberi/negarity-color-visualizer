@@ -20,3 +20,20 @@ export {
   valuesToHex as valuesToHexChannel,
 } from './color-channel-visualizer';
 export type { ColorChannelVisualizerOptions, ColorChannelVisualizerInstance } from './color-channel-visualizer';
+
+// Color Explorer (unified shell: viz + channels + responsive embeds)
+export {
+  ColorExplorer,
+  buildExplorerPreset,
+  displaySpaceLabel,
+  getSliceCaption,
+  normalizeSpaceKey,
+  DEFAULT_COLOR_SPACES,
+} from './color-explorer';
+export type {
+  ColorExplorerInstance,
+  ColorExplorerOptions,
+  ColorExplorerState,
+  LayoutMode,
+  UiControlConfig,
+} from './color-explorer';

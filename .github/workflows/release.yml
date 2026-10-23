@@ -1,0 +1,45 @@
+name: Release runtime ZIP
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to rebuild
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-zip-${{ github.event.release.tag_name || inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
+          persist-credentials: false
+      - name: Verify release exists
+        run: gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install build dependencies
+        run: npm ci
+      - name: Build production assets
+        run: npm run build
+      - name: Package and validate runtime files
+        run: python3 .github/package-release.py "$RELEASE_TAG" "${GITHUB_REPOSITORY#*/}"
+      - name: Attach ZIP to release
+        run: gh release upload "$RELEASE_TAG" release-assets/*.zip --repo "$GITHUB_REPOSITORY" --clobber

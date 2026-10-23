@@ -1,5 +1,5 @@
 {
-  "name": "negarity-color-visualizer",
+  "name": "@jalaljaberi/negarity-color-visualizer",
   "version": "1.0.0",
   "description": "A TypeScript-based, browser-only library for visualizing colors in 2D and 3D",
   "main": "dist/negarity-color-visualizer.umd.js",

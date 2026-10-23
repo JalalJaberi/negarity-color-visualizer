@@ -8,6 +8,7 @@ sidebar_position: 1
 
 ## What you get
 
+- **`ColorExplorer`** — unified shell (viz + sliders + chrome) with responsive embeds (`auto` / `desktop` / `mobile` / `display`) and per-control fixed vs editable options. See [Color Explorer](./guides/color-explorer).
 - **`ColorVisualizer`** — mount to a DOM element, choose `2d` or `3d`, render **presets** (e.g. RGB cube), **update** points, and **resize** when the layout changes.
 - **Renderers** — **Three.js** for 3D (orbit controls, meshes, axes) and **Konva** for 2D diagrams (CIE-style backgrounds, hue wheels, gamut slices, markers).
 - **`ColorChannelVisualizer`** — declarative **channel sliders** with dependent gradients (e.g. HSL lightness depends on hue/saturation), optional color preview, vertical or horizontal layout.
@@ -22,6 +23,7 @@ sidebar_position: 1
 
 - [Architecture](./architecture) — components and design principles
 - [Getting started](./getting-started) — install and first example
+- [Color Explorer](./guides/color-explorer) — unified shell & responsive embeds
 - [ColorVisualizer](./guides/color-visualizer) — main class API
 - [Modes & renderers](./guides/modes-and-renderers) — 2D vs 3D
 - [Presets & color spaces](./guides/presets-and-spaces) — built-in definitions
